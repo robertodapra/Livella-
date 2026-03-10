@@ -3,94 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LIVELLA PRO CONNECT</title>
+    <title>LIVELLA PRO BLUETOOTH</title>
     <style>
-        :root { --orange: #ff8c00; --black: #121212; --neon: #00ff41; --gray: #2c2c2c; }
-        body { font-family: 'Inter', sans-serif; background: var(--black); color: white; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; height: 100vh; }
+        :root { --orange: #ff6600; --black: #1a1a1a; --neon: #adff2f; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--black); color: white; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
         
-        /* Pannello di Connessione Moderno */
-        .conn-panel { background: var(--gray); padding: 10px; border-radius: 12px; width: 100%; max-width: 400px; margin-bottom: 20px; display: flex; gap: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        input { flex: 1; background: #1a1a1a; border: 1px solid #444; color: var(--neon); padding: 10px; border-radius: 8px; font-family: monospace; }
-        .btn-conn { background: var(--orange); border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-
-        .tool-frame { background: var(--orange); padding: 25px; border-radius: 25px; width: 100%; max-width: 400px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+        .tool-body { background: var(--orange); padding: 30px; border-radius: 25px; width: 90%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); text-align: center; border-bottom: 8px solid #cc5200; }
         
-        /* Viali con effetto vetro */
-        .vial { background: rgba(0,0,0,0.8); border: 2px solid #333; position: relative; overflow: hidden; box-shadow: inset 0 0 20px #000; }
-        .h-vial { height: 70px; width: 100%; border-radius: 35px; margin: 20px 0; }
-        .b-vial { height: 180px; width: 180px; border-radius: 50%; margin: 20px auto; border: 4px solid #444; }
+        .vial { background: #000; border: 4px solid #333; border-radius: 50px; position: relative; height: 70px; margin: 25px 0; overflow: hidden; box-shadow: inset 0 0 15px #000; }
+        .bubble { background: var(--neon); width: 80px; height: 50px; border-radius: 25px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); transition: transform 0.1s linear; box-shadow: 0 0 20px var(--neon); }
+        
+        .value { font-size: 4rem; font-weight: 900; color: var(--black); margin: 10px 0; font-family: monospace; }
+        .unit { font-size: 1.5rem; vertical-align: top; }
 
-        .bubble { background: var(--neon); border-radius: 50%; position: absolute; box-shadow: 0 0 25px var(--neon); transition: transform 0.05s linear; }
-        .h-bubble { width: 80px; height: 50px; top: 10px; left: 50%; transform: translateX(-50%); }
-        .b-bubble { width: 40px; height: 40px; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-
-        .value { font-size: 2.5rem; font-weight: 900; color: var(--black); letter-spacing: -1px; margin: 10px 0; }
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: red; margin-right: 5px; }
+        button { width: 100%; padding: 20px; font-size: 1.2rem; font-weight: bold; border: none; border-radius: 15px; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        #btnConnect { background: var(--black); color: white; }
+        #btnTara { background: rgba(255,255,255,0.3); color: var(--black); margin-top: 15px; display: none; }
+        
+        .status { margin-bottom: 10px; font-size: 0.8rem; font-weight: bold; color: rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
 
-    <div class="conn-panel">
-        <input type="text" id="ipAddr" placeholder="IP Arduino (es. 192.168.1.50)">
-        <button class="btn-conn" onclick="connectWS()">CONNETTI</button>
-    </div>
+    <div class="tool-body">
+        <div id="status" class="status">DISPOSITIVO SCOLLEGATO</div>
+        
+        <div class="value"><span id="deg">0.0</span><span class="unit">°</span></div>
 
-    <div class="tool-frame">
-        <div style="text-align: left; font-size: 0.8rem; font-weight: bold; color: rgba(0,0,0,0.5);">
-            <span id="dot" class="status-dot"></span> LIVELLA DIGITALE SENSOR-LINK
+        <div class="vial">
+            <div id="bubble" class="bubble"></div>
         </div>
 
-        <div class="value"><span id="valH">0.0</span>°</div>
-
-        <div class="vial h-vial">
-            <div id="bubble-h" class="bubble h-bubble"></div>
-        </div>
-
-        <div class="vial b-vial">
-            <div id="bubble-b" class="bubble b-bubble"></div>
-        </div>
-
-        <button style="width:100%; padding:15px; border-radius:12px; background:var(--black); color:white; border:none; font-weight:bold; margin-top:10px;" onclick="tara()">TARA ZERO</button>
+        <button id="btnConnect" onclick="connectBLE()">🔍 COLLEGA LIVELLA</button>
+        <button id="btnTara" onclick="tara()">TARA ZERO</button>
     </div>
 
     <script>
-        let socket;
-        let offH = 0, offV = 0;
+        let characteristic;
+        let offset = 0;
 
-        function connectWS() {
-            const ip = document.getElementById('ipAddr').value;
-            if(!ip) return alert("Inserisci l'IP!");
-            
-            // Usiamo WebSocket per velocità istantanea
-            socket = new WebSocket(`ws://${ip}:81`);
-            
-            socket.onopen = () => {
-                document.getElementById('dot').style.background = "#00ff41";
-                console.log("Connesso!");
-            };
+        // I due codici (UUID) devono corrispondere a quelli nel codice Arduino
+        const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
+        const CHARACTERISTIC_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
 
-            socket.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                updateUI(data.h - offH, data.v - offV);
-            };
+        async function connectBLE() {
+            try {
+                const device = await navigator.bluetooth.requestDevice({
+                    filters: [{ name: 'LIVELLA_PRO' }],
+                    optionalServices: [SERVICE_UUID]
+                });
 
-            socket.onclose = () => {
-                document.getElementById('dot').style.background = "red";
-            };
+                document.getElementById('status').innerText = "CONNESSIONE IN CORSO...";
+                const server = await device.gatt.connect();
+                const service = await server.getPrimaryService(SERVICE_UUID);
+                characteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
+
+                await characteristic.startNotifications();
+                characteristic.addEventListener('characteristicvaluechanged', (event) => {
+                    const decoder = new TextDecoder('utf-8');
+                    const data = decoder.decode(event.target.value);
+                    updateUI(parseFloat(data));
+                });
+
+                document.getElementById('status').innerText = "LIVELLA CONNESSA VIA BT";
+                document.getElementById('btnConnect').style.display = "none";
+                document.getElementById('btnTara').style.display = "block";
+
+            } catch (error) {
+                console.error(error);
+                alert("Errore: assicurati che il Bluetooth sia attivo e di usare Chrome/Edge.");
+            }
         }
 
-        function updateUI(h, v) {
-            document.getElementById('valH').innerText = h.toFixed(1);
-            
-            // Movimento fluido
-            let mH = Math.max(-140, Math.min(140, h * 18));
-            let mV = Math.max(-70, Math.min(70, v * 18));
+        function updateUI(val) {
+            const currentVal = val - offset;
+            document.getElementById('deg').innerText = currentVal.toFixed(1);
 
-            document.getElementById('bubble-h').style.transform = `translateX(calc(-50% + ${mH}px))`;
-            document.getElementById('bubble-b').style.transform = `translate(calc(-50% + ${mH/2}px), calc(-50% + ${mV/2}px))`;
+            // Muovi la bolla (max +/- 140px di escursione)
+            const move = Math.max(-140, Math.min(140, currentVal * 15));
+            document.getElementById('bubble').style.transform = `translateX(calc(-50% + ${move}px))`;
+
+            // Se è vicino allo zero (in bolla), cambia leggermente il colore
+            if(Math.abs(currentVal) < 0.2) {
+                document.getElementById('bubble').style.background = "#fff";
+            } else {
+                document.getElementById('bubble').style.background = "var(--neon)";
+            }
         }
 
-        function tara() { /* Logica offset qui */ }
+        function tara() {
+            const currentRaw = parseFloat(document.getElementById('deg').innerText) + offset;
+            offset = currentRaw;
+            alert("Zero impostato!");
+        }
     </script>
 </body>
 </html>
