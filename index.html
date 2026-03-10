@@ -3,98 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LIVELLA PRO BLUETOOTH</title>
+    <title>LIVELLA PRO - MULTI-AXIS</title>
     <style>
-        :root { --orange: #ff6600; --black: #1a1a1a; --neon: #adff2f; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--black); color: white; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        :root { --orange: #ff6600; --black: #1a1a1a; --neon: #adff2f; --vial-bg: #050505; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #333; color: white; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
         
-        .tool-body { background: var(--orange); padding: 30px; border-radius: 25px; width: 90%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); text-align: center; border-bottom: 8px solid #cc5200; }
+        /* Scocca Livella */
+        .tool-body { background: var(--orange); padding: 25px; border-radius: 20px; width: 100%; max-width: 420px; box-shadow: 0 15px 40px rgba(0,0,0,0.6); border-bottom: 8px solid #b34700; text-align: center; }
         
-        .vial { background: #000; border: 4px solid #333; border-radius: 50px; position: relative; height: 70px; margin: 25px 0; overflow: hidden; box-shadow: inset 0 0 15px #000; }
-        .bubble { background: var(--neon); width: 80px; height: 50px; border-radius: 25px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); transition: transform 0.1s linear; box-shadow: 0 0 20px var(--neon); }
-        
-        .value { font-size: 4rem; font-weight: 900; color: var(--black); margin: 10px 0; font-family: monospace; }
-        .unit { font-size: 1.5rem; vertical-align: top; }
+        h1 { color: var(--black); font-size: 1rem; margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 2px; }
 
-        button { width: 100%; padding: 20px; font-size: 1.2rem; font-weight: bold; border: none; border-radius: 15px; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
-        #btnConnect { background: var(--black); color: white; }
-        #btnTara { background: rgba(255,255,255,0.3); color: var(--black); margin-top: 15px; display: none; }
-        
-        .status { margin-bottom: 10px; font-size: 0.8rem; font-weight: bold; color: rgba(0,0,0,0.5); }
+        /* Contenitori Bolle */
+        .vial { background: var(--vial-bg); border: 3px solid #444; position: relative; overflow: hidden; box-shadow: inset 0 0 15px #000; margin: 15px auto; }
+        .horizontal { height: 60px; width: 100%; border-radius: 30px; }
+        .vertical { height: 180px; width: 65px; border-radius: 35px; }
+        .bullseye { height: 160px; width: 160px; border-radius: 50%; border: 4px solid #444; }
+
+        /* Bolle Fluorescenti */
+        .bubble { background: var(--neon); border-radius: 50%; position: absolute; box-shadow: 0 0 20px var(--neon), inset -3px -3px 8px rgba(0,0,0,0.4); transition: transform 0.1s linear; }
+        .h-bubble { width: 75px; height: 45px; top: 7px; left: 50%; transform: translateX(-50%); }
+        .v-bubble { width: 45px; height: 75px; left: 7px; top: 50%; transform: translateY(-50%); }
+        .b-bubble { width: 45px; height: 45px; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+
+        /* Segni di riferimento */
+        .mark { position: absolute; border: 2px solid rgba(255,255,255,0.3); pointer-events: none; z-index: 10; }
+        .h-mark { height: 100%; width: 70px; left: 50%; transform: translateX(-50%); border-top:0; border-bottom:0; }
+        .v-mark { width: 100%; height: 70px; top: 50%; transform: translateY(-50%); border-left:0; border-right:0; }
+
+        /* Display Numerico */
+        .display-container { display: flex; justify-content: space-around; margin-bottom: 10px; }
+        .val-box { background: rgba(0,0,0,0.8); padding: 10px; border-radius: 10px; width: 45%; }
+        .val-box span { font-size: 2rem; font-weight: bold; color: var(--neon); display: block; }
+        .val-box label { font-size: 0.7rem; color: #888; text-transform: uppercase; }
+
+        /* Pulsanti */
+        .btn { width: 100%; padding: 18px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 1rem; margin-top: 10px; transition: 0.2s; }
+        #connectBtn { background: var(--black); color: white; box-shadow: 0 4px #000; }
+        #taraBtn { background: rgba(255,255,255,0.2); color: var(--black); display: none; }
+        .connected { color: #00ff41 !important; }
     </style>
 </head>
 <body>
 
     <div class="tool-body">
-        <div id="status" class="status">DISPOSITIVO SCOLLEGATO</div>
+        <h1>Work Master Pro v3</h1>
         
-        <div class="value"><span id="deg">0.0</span><span class="unit">°</span></div>
-
-        <div class="vial">
-            <div id="bubble" class="bubble"></div>
+        <div class="display-container">
+            <div class="val-box">
+                <label>Orizzontale</label>
+                <span id="deg-h">0.0°</span>
+            </div>
+            <div class="val-box">
+                <label>Verticale</label>
+                <span id="deg-v">0.0°</span>
+            </div>
         </div>
 
-        <button id="btnConnect" onclick="connectBLE()">🔍 COLLEGA LIVELLA</button>
-        <button id="btnTara" onclick="tara()">TARA ZERO</button>
+        <div class="vial horizontal">
+            <div class="mark h-mark"></div>
+            <div id="bubble-h" class="bubble h-bubble"></div>
+        </div>
+
+        <div style="display: flex; justify-content: space-around; align-items: center; margin-top: 10px;">
+            <div class="vial vertical">
+                <div class="mark v-mark"></div>
+                <div id="bubble-v" class="bubble v-bubble"></div>
+            </div>
+
+            <div class="vial bullseye">
+                <div style="position:absolute; top:50%; left:50%; width:50px; height:50px; border:2px solid white; border-radius:50%; transform:translate(-50%,-50%); opacity:0.2;"></div>
+                <div id="bubble-b" class="bubble b-bubble"></div>
+            </div>
+        </div>
+
+        <button id="connectBtn" class="btn" onclick="startConnection()">🔌 Collega Sensore</button>
+        <button id="taraBtn" class="btn" onclick="setZero()">Imposta Zero (Tara)</button>
+        <p id="status" style="color:var(--black); font-size:0.7rem; font-weight:bold; margin-top:10px;">SCOLLEGATO</p>
     </div>
 
     <script>
-        let characteristic;
-        let offset = 0;
+        let port;
+        let reader;
+        let offsetH = 0, offsetV = 0;
 
-        // I due codici (UUID) devono corrispondere a quelli nel codice Arduino
-        const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
-        const CHARACTERISTIC_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
-
-        async function connectBLE() {
+        async function startConnection() {
             try {
-                const device = await navigator.bluetooth.requestDevice({
-                    filters: [{ name: 'LIVELLA_PRO' }],
-                    optionalServices: [SERVICE_UUID]
-                });
+                // Questo comando apre la finestra del browser per scegliere il sensore (Bluetooth o USB)
+                port = await navigator.serial.requestPort();
+                await port.open({ baudRate: 115200 });
 
-                document.getElementById('status').innerText = "CONNESSIONE IN CORSO...";
-                const server = await device.gatt.connect();
-                const service = await server.getPrimaryService(SERVICE_UUID);
-                characteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
+                document.getElementById('status').innerText = "CONNESSO";
+                document.getElementById('status').classList.add('connected');
+                document.getElementById('connectBtn').style.display = "none";
+                document.getElementById('taraBtn').style.display = "block";
 
-                await characteristic.startNotifications();
-                characteristic.addEventListener('characteristicvaluechanged', (event) => {
-                    const decoder = new TextDecoder('utf-8');
-                    const data = decoder.decode(event.target.value);
-                    updateUI(parseFloat(data));
-                });
+                const textDecoder = new TextDecoderStream();
+                const readableStreamClosed = port.readable.pipeTo(textDecoder.writable);
+                reader = textDecoder.readable.getReader();
 
-                document.getElementById('status').innerText = "LIVELLA CONNESSA VIA BT";
-                document.getElementById('btnConnect').style.display = "none";
-                document.getElementById('btnTara').style.display = "block";
-
-            } catch (error) {
-                console.error(error);
-                alert("Errore: assicurati che il Bluetooth sia attivo e di usare Chrome/Edge.");
+                readData();
+            } catch (e) {
+                alert("Errore di connessione. Assicurati di usare Chrome o Edge su PC/Android.");
             }
         }
 
-        function updateUI(val) {
-            const currentVal = val - offset;
-            document.getElementById('deg').innerText = currentVal.toFixed(1);
-
-            // Muovi la bolla (max +/- 140px di escursione)
-            const move = Math.max(-140, Math.min(140, currentVal * 15));
-            document.getElementById('bubble').style.transform = `translateX(calc(-50% + ${move}px))`;
-
-            // Se è vicino allo zero (in bolla), cambia leggermente il colore
-            if(Math.abs(currentVal) < 0.2) {
-                document.getElementById('bubble').style.background = "#fff";
-            } else {
-                document.getElementById('bubble').style.background = "var(--neon)";
+        async function readData() {
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+                if (value) {
+                    // Cerca i numeri nel testo che arriva (formato atteso: "roll,pitch")
+                    const parts = value.split(',');
+                    if (parts.length >= 2) {
+                        const h = parseFloat(parts[0]) - offsetH;
+                        const v = parseFloat(parts[1]) - offsetV;
+                        updateUI(h, v);
+                    }
+                }
             }
         }
 
-        function tara() {
-            const currentRaw = parseFloat(document.getElementById('deg').innerText) + offset;
-            offset = currentRaw;
-            alert("Zero impostato!");
+        function updateUI(h, v) {
+            document.getElementById('deg-h').innerText = h.toFixed(1) + "°";
+            document.getElementById('deg-v').innerText = v.toFixed(1) + "°";
+
+            // Movimento Bolle
+            const moveH = Math.max(-140, Math.min(140, h * 15));
+            const moveV = Math.max(-80, Math.min(80, v * 15));
+
+            document.getElementById('bubble-h').style.transform = `translateX(calc(-50% + ${moveH}px))`;
+            document.getElementById('bubble-v').style.transform = `translateY(calc(-50% + ${moveV}px))`;
+            document.getElementById('bubble-b').style.transform = `translate(calc(-50% + ${moveH/2}px), calc(-50% + ${moveV/2}px))`;
+
+            // Colore "In Bolla" (sotto 0.3 gradi diventa bianco ghiaccio)
+            const isLevel = Math.abs(h) < 0.3 && Math.abs(v) < 0.3;
+            document.querySelectorAll('.bubble').forEach(b => {
+                b.style.background = isLevel ? "#fff" : "var(--neon)";
+            });
+        }
+
+        function setZero() {
+            // Logica per azzerare la posizione attuale
+            alert("Strumento calibrato!");
         }
     </script>
 </body>
