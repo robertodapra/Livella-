@@ -3,96 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LIVELLA PROFESSIONALE</title>
+    <title>LIVELLA GRAVITÀ ZERO</title>
     <style>
-        :root { --orange: #ff6600; --black: #1a1a1a; --neon: #adff2f; }
-        body { font-family: sans-serif; background: #333; color: white; margin: 0; padding: 15px; text-align: center; }
+        :root { --orange: #ff6600; --black: #1a1a1a; --neon: #adff2f; --alert: #ff3300; }
+        body { font-family: 'Segoe UI', sans-serif; background: #222; color: white; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
         
-        .tool-body { background: var(--orange); padding: 25px; border-radius: 20px; max-width: 400px; margin: auto; box-shadow: 0 10px 30px #000; border-bottom: 8px solid #b34700; }
+        .tool-body { background: var(--orange); padding: 25px; border-radius: 20px; width: 100%; max-width: 400px; box-shadow: 0 15px 40px rgba(0,0,0,0.6); text-align: center; }
         
-        /* Contenitori Bolle */
-        .vial { background: #000; border: 3px solid #444; position: relative; overflow: hidden; margin: 15px auto; }
-        .horizontal { height: 60px; width: 100%; border-radius: 30px; }
-        .vertical { height: 160px; width: 60px; border-radius: 30px; }
-        .bullseye { height: 150px; width: 150px; border-radius: 50%; }
+        /* Display Digitale Precisione */
+        .lcd { background: #000; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 3px solid #444; }
+        .lcd-val { font-size: 3.5rem; font-weight: bold; font-family: monospace; color: var(--neon); }
+        .lcd-label { font-size: 0.8rem; color: #888; text-transform: uppercase; }
 
-        /* Bolle */
-        .bubble { background: var(--neon); border-radius: 50%; position: absolute; box-shadow: 0 0 15px var(--neon); transition: 0.1s linear; }
-        .h-bubble { width: 70px; height: 40px; top: 10px; left: 50%; transform: translateX(-50%); }
-        .v-bubble { width: 40px; height: 70px; left: 10px; top: 50%; transform: translateY(-50%); }
-        .b-bubble { width: 40px; height: 40px; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-
-        .value { font-size: 3rem; font-weight: bold; color: var(--black); margin: 10px 0; }
+        /* Viale Bolla */
+        .vial { background: #000; height: 70px; border-radius: 35px; position: relative; overflow: hidden; border: 3px solid #333; margin: 20px 0; }
+        .bubble { 
+            background: var(--neon); width: 80px; height: 50px; border-radius: 25px; 
+            position: absolute; top: 10px; left: 50%; transform: translateX(-50%); 
+            transition: transform 0.05s linear, background 0.3s;
+            box-shadow: 0 0 20px var(--neon); 
+        }
         
-        /* Tasto Connetti - Il segreto per farlo andare */
-        .btn-connect { width: 100%; padding: 20px; background: var(--black); color: white; border: none; border-radius: 15px; font-weight: bold; font-size: 1.2rem; cursor: pointer; }
+        /* Segni di precisione */
+        .center-marks {
+            position: absolute; width: 84px; height: 100%; left: 50%; transform: translateX(-50%);
+            border-left: 3px solid rgba(255,255,255,0.5); border-right: 3px solid rgba(255,255,255,0.5); z-index: 5;
+        }
+
+        .btn-connect { width: 100%; padding: 20px; background: var(--black); color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        
+        /* Stato "In Bolla" */
+        .perfect { background: #fff !important; box-shadow: 0 0 30px #fff !important; }
     </style>
 </head>
 <body>
 
     <div class="tool-body">
-        <h2 style="color:var(--black); margin-top:0;">LIVELLA PRO</h2>
-        
-        <div class="value"><span id="deg-h">0.0</span>°</div>
-
-        <div class="vial horizontal">
-            <div id="bh" class="bubble h-bubble"></div>
+        <div class="lcd">
+            <span class="lcd-label">Inclinazione Reale</span>
+            <div class="lcd-val"><span id="deg">0.0</span>°</div>
         </div>
 
-        <div style="display: flex; justify-content: space-around; align-items: center;">
-            <div class="vial vertical">
-                <div id="bv" class="bubble v-bubble"></div>
-            </div>
-            <div class="vial bullseye">
-                <div id="bb" class="bubble b-bubble"></div>
-            </div>
+        <div class="vial">
+            <div class="center-marks"></div>
+            <div id="bubble" class="bubble"></div>
         </div>
 
-        <button id="btn" class="btn-connect" onclick="connect()">COLLEGA BLUETOOTH</button>
-        <p id="status" style="color:var(--black); font-weight:bold; margin-top:10px;">SCOLLEGATO</p>
+        <button id="btn" class="btn-connect" onclick="connectBT()">🔍 Collega Sensore Gravità</button>
+        <p id="status" style="color:var(--black); font-weight:bold; margin-top:15px; font-size:0.9rem;">SISTEMA PRONTO</p>
     </div>
 
     <script>
-        let characteristic;
+        let char;
 
-        async function connect() {
+        async function connectBT() {
             try {
-                // Cerchiamo qualsiasi dispositivo Bluetooth che trasmetta
                 const device = await navigator.bluetooth.requestDevice({
                     acceptAllDevices: true,
-                    optionalServices: ['4fafc201-1fb5-459e-8fcc-c5c9c331914b'] 
+                    optionalServices: ['4fafc201-1fb5-459e-8fcc-c5c9c331914b']
                 });
-
                 const server = await device.gatt.connect();
                 const service = await server.getPrimaryService('4fafc201-1fb5-459e-8fcc-c5c9c331914b');
-                characteristic = await service.getCharacteristic('beb5483e-36e1-4688-b7f5-ea07361b26a8');
+                char = await service.getCharacteristic('beb5483e-36e1-4688-b7f5-ea07361b26a8');
 
-                await characteristic.startNotifications();
-                characteristic.addEventListener('characteristicvaluechanged', handleData);
+                await char.startNotifications();
+                char.addEventListener('characteristicvaluechanged', handleData);
                 
-                document.getElementById('status').innerText = "CONNESSO";
+                document.getElementById('status').innerText = "LIVELLA ATTIVA";
                 document.getElementById('btn').style.display = "none";
-            } catch (e) {
-                alert("Assicurati di usare Chrome/Edge e che il Bluetooth sia attivo.");
-            }
+            } catch (e) { alert("Attiva il Bluetooth e usa Chrome."); }
         }
 
         function handleData(event) {
             let decoder = new TextDecoder('utf-8');
-            let data = decoder.decode(event.target.value).split(',');
-            
-            let h = parseFloat(data[0]) || 0;
-            let v = parseFloat(data[1]) || 0;
+            let raw = decoder.decode(event.target.value).split(',');
+            let angle = parseFloat(raw[0]) || 0; // Usiamo il valore puro che arriva dal sensore
 
-            document.getElementById('deg-h').innerText = h.toFixed(1);
-            
-            // Muovi le bolle
-            let mh = Math.max(-140, Math.min(140, h * 15));
-            let mv = Math.max(-70, Math.min(70, v * 15));
+            document.getElementById('deg').innerText = Math.abs(angle).toFixed(1);
 
-            document.getElementById('bh').style.transform = `translateX(calc(-50% + ${mh}px))`;
-            document.getElementById('bv').style.transform = `translateY(calc(-50% + ${mv}px))`;
-            document.getElementById('bb').style.transform = `translate(calc(-50% + ${mh/2}px), calc(-50% + ${mv/2}px))`;
+            // Calcolo posizione bolla
+            let move = Math.max(-140, Math.min(140, angle * 18));
+            const b = document.getElementById('bubble');
+            b.style.transform = `translateX(calc(-50% + ${move}px))`;
+
+            // Se l'angolo è quasi zero (meno di 0.2 gradi), è "In Bolla" perfetta
+            if (Math.abs(angle) < 0.2) {
+                b.classList.add('perfect');
+                document.getElementById('status').innerText = "PERFETTO (0°)";
+            } else {
+                b.classList.remove('perfect');
+                document.getElementById('status').innerText = "RILEVAMENTO GRAVITÀ...";
+            }
         }
     </script>
 </body>
