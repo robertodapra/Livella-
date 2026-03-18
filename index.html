@@ -275,7 +275,7 @@
   /* ── HUD NUMERICO ── */
   .hud-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 8px;
     padding: 0 16px;
   }
@@ -443,6 +443,63 @@
     border-top: 1px solid var(--border);
     font-family: var(--font-hud);
   }
+
+  /* ── BADGE SORGENTE ── */
+  #sourceBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-hud);
+    font-size: .65rem;
+    letter-spacing: .12em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    background: transparent;
+    transition: all .3s;
+    white-space: nowrap;
+  }
+  #sourceBadge.ble {
+    border-color: var(--green-dim);
+    color: var(--green);
+  }
+  #sourceBadge.phone {
+    border-color: var(--amber);
+    color: var(--amber);
+  }
+  #sourceBadge .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  /* ── BANNER PERMESSO iOS ── */
+  #iosPermBanner {
+    display: none;
+    margin: 8px 16px 0;
+    padding: 10px 14px;
+    background: rgba(255,183,0,.08);
+    border: 1px solid rgba(255,183,0,.3);
+    border-radius: 4px;
+    font-size: .8rem;
+    color: var(--amber);
+    font-family: var(--font-ui);
+    display: none;
+    align-items: center;
+    gap: 10px;
+    justify-content: space-between;
+  }
+  #iosPermBanner button {
+    font-size: .75rem;
+    padding: 6px 12px;
+    background: var(--amber);
+    color: #000;
+    border-radius: 3px;
+    flex: 0 0 auto;
+    font-weight: 700;
+    letter-spacing: .05em;
+  }
 </style>
 </head>
 <body>
@@ -461,6 +518,7 @@
     <span class="sub">BLE</span>
   </div>
   <div class="status-row">
+    <div id="sourceBadge"><span class="dot"></span><span id="sourceLabel">--</span></div>
     <span id="statusText">OFFLINE</span>
     <div id="statusDot"></div>
   </div>
@@ -479,6 +537,12 @@
 
 <!-- CONTENUTO PRINCIPALE -->
 <div id="mainContent">
+
+  <!-- BANNER PERMESSO iOS -->
+  <div id="iosPermBanner">
+    <span>iOS richiede permesso per il sensore di movimento</span>
+    <button id="btnIosPerm">Autorizza</button>
+  </div>
 
   <!-- BANNER IN BOLLA -->
   <div id="bollaBanner">○ · · IN ATTESA · · ○</div>
@@ -532,11 +596,6 @@
       <span class="hud-key">Pitch</span>
       <span class="hud-val" id="hudPitch">--.-</span>
       <span class="hud-unit">°</span>
-    </div>
-    <div class="hud-cell">
-      <span class="hud-key">Temp</span>
-      <span class="hud-val" id="hudTemp">--.-</span>
-      <span class="hud-unit">°C</span>
     </div>
   </div>
 
@@ -647,40 +706,38 @@
   });
 
   // ─── PARSING DATI dal sensore ─────────────────────────────────────────────
-  // Formato: "pitch,roll,temp,in_bolla\n"
+  // Formato: "pitch,roll,in_bolla\n"
   let buffer = '';
 
   function onData(event) {
     const decoder = new TextDecoder();
     buffer += decoder.decode(event.target.value);
     const lines = buffer.split('\n');
-    buffer = lines.pop(); // tiene eventuali dati incompleti
+    buffer = lines.pop();
 
     for (const line of lines) {
       const parts = line.trim().split(',');
-      if (parts.length < 3) continue;
+      if (parts.length < 2) continue;
       const pitch   = parseFloat(parts[0]) - pitchOffset;
       const roll    = parseFloat(parts[1]) - rollOffset;
-      const temp    = parseFloat(parts[2]);
       const inBolla = (Math.abs(pitch) < LEVEL_THRESHOLD && Math.abs(roll) < LEVEL_THRESHOLD);
 
       lastPitch = parseFloat(parts[0]);
       lastRoll  = parseFloat(parts[1]);
 
-      updateUI(pitch, roll, temp, inBolla);
+      updateUI(pitch, roll, inBolla);
     }
   }
 
   // ─── AGGIORNAMENTO UI ─────────────────────────────────────────────────────
-  const TUBE_H_MAX   = 45;  // gradi per toccare il bordo orizzontale
-  const TUBE_V_MAX   = 45;  // gradi per toccare il bordo verticale
-  const CIRCLE_MAX_R = 50;  // px raggio max bolla 2D (in un cerchio da 140px)
+  const TUBE_H_MAX   = 45;
+  const TUBE_V_MAX   = 45;
+  const CIRCLE_MAX_R = 50;
 
-  function updateUI(pitch, roll, temp, inBolla) {
+  function updateUI(pitch, roll, inBolla) {
     // ── HUD numerico ──
     hudRoll.textContent  = roll.toFixed(1);
     hudPitch.textContent = pitch.toFixed(1);
-    hudTemp.textContent  = temp.toFixed(1);
 
     const warnRoll  = Math.abs(roll)  > 0.5;
     const warnPitch = Math.abs(pitch) > 0.5;
@@ -743,7 +800,6 @@
   function resetUI() {
     hudRoll.textContent  = '--.-';
     hudPitch.textContent = '--.-';
-    hudTemp.textContent  = '--.-';
     bubbleH.style.left   = '50%';
     bubbleV.style.top    = '50%';
     bubble2d.style.left  = '70px';
