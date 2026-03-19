@@ -4,462 +4,865 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Livella Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap');
-
 :root {
-  --bg:     #0d0f0e;
-  --bg2:    #131815;
-  --panel:  #181e1a;
-  --border: #2a3830;
-  --green:  #00e87a;
-  --gdim:   #00a050;
-  --amber:  #ffb700;
-  --red:    #ff3d3d;
-  --text:   #c8d8cc;
-  --muted:  #4a6050;
-  --hud:    'Share Tech Mono', monospace;
-  --ui:     'Rajdhani', sans-serif;
+  --bg:#1a1a1a; --bg2:#111; --steel:#222426; --plate:#1e2022;
+  --border:#333639; --orange:#ff6b00; --orange2:#ff8c00;
+  --red:#ff2d2d; --green:#00e87a; --text:#d8cfc0; --muted:#5a5650; --white:#f0ece4;
+  --hud:'Share Tech Mono',monospace; --ui:'Oswald',sans-serif;
 }
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:var(--ui);min-height:100svh;display:flex;flex-direction:column;overflow-x:hidden;
+  background-image:linear-gradient(rgba(255,255,255,.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.015) 1px,transparent 1px);background-size:20px 20px}
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+/* HEADER */
+header{background:var(--bg2);border-bottom:3px solid var(--orange);padding:0 14px;display:flex;align-items:stretch;justify-content:space-between;min-height:54px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.3rem;letter-spacing:.18em;text-transform:uppercase;color:var(--white)}
+.logo-icon{width:34px;height:34px;background:var(--orange);border-radius:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-icon svg{width:20px;height:20px;stroke:#000}
+.header-right{display:flex;align-items:stretch;gap:0}
+.status-pill{display:flex;align-items:center;gap:7px;padding:0 12px;background:var(--steel);border-left:1px solid var(--border);font-family:var(--hud);font-size:.68rem;letter-spacing:.1em;color:var(--muted)}
+#dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0;transition:background .3s,box-shadow .3s}
+#dot.on{background:var(--green);box-shadow:0 0 8px var(--green)}
+#dot.blink{background:var(--orange);box-shadow:0 0 8px var(--orange);animation:blink .8s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
 
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--ui);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  overflow-x: hidden;
-  -webkit-tap-highlight-color: transparent;
-}
+/* LINGUA SELECTOR */
+.lang-btn{display:flex;align-items:center;padding:0 10px;background:var(--steel);border-left:1px solid var(--border);cursor:pointer;font-family:var(--hud);font-size:.75rem;color:var(--muted);gap:4px;position:relative;user-select:none}
+.lang-btn:hover{color:var(--text)}
+.lang-flag{font-size:1rem}
+.lang-dropdown{position:absolute;top:100%;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:3px;z-index:200;min-width:120px;display:none;box-shadow:0 4px 16px rgba(0,0,0,.5)}
+.lang-dropdown.open{display:block}
+.lang-opt{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;font-family:var(--hud);font-size:.72rem;color:var(--muted);letter-spacing:.08em;transition:background .12s}
+.lang-opt:hover{background:var(--steel);color:var(--text)}
+.lang-opt.active{color:var(--orange)}
 
-body::before {
-  content: '';
-  position: fixed; inset: 0;
-  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.07) 2px, rgba(0,0,0,.07) 4px);
-  pointer-events: none;
-  z-index: 100;
-}
+/* TABS */
+.tabs{display:flex;border-bottom:2px solid var(--border);background:var(--bg2);padding:0 14px;gap:2px}
+.tab{font-family:var(--ui);font-weight:600;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;padding:9px 12px 7px;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-2px;cursor:pointer;transition:color .15s,border-color .15s;white-space:nowrap}
+.tab.active{color:var(--orange);border-color:var(--orange)}
 
-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 18px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg2);
-}
+/* PAGES */
+.page{display:none;flex-direction:column;flex:1}
+.page.active{display:flex}
 
-.logo {
-  font-weight: 700;
-  font-size: 1.25rem;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--green);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.logo svg { width: 22px; height: 22px; }
-.logo .sub { color: var(--muted); font-weight: 400; font-size: .8rem; }
+/* BANNER */
+#banner{margin:12px 14px 0;padding:10px 16px;background:var(--plate);border:2px solid var(--border);border-radius:2px;font-family:var(--hud);font-size:.82rem;letter-spacing:.2em;text-align:center;color:var(--muted);text-transform:uppercase;position:relative;overflow:hidden;transition:border-color .2s,color .2s}
+#banner::before{content:'';position:absolute;top:4px;left:4px;width:10px;height:10px;border:2px solid var(--muted);border-width:2px 0 0 2px;transition:border-color .2s}
+#banner::after{content:'';position:absolute;bottom:4px;right:4px;width:10px;height:10px;border:2px solid var(--muted);border-width:0 2px 2px 0;transition:border-color .2s}
+#banner.ok{border-color:var(--orange);color:var(--orange);background:rgba(255,107,0,.06);animation:bpulse .5s ease-out}
+#banner.ok::before,#banner.ok::after{border-color:var(--orange)}
+@keyframes bpulse{0%{box-shadow:0 0 0 0 rgba(255,107,0,.6)}50%{box-shadow:0 0 0 12px rgba(255,107,0,.15)}100%{box-shadow:0 0 0 0 rgba(255,107,0,0)}}
 
-.status-row { display: flex; align-items: center; gap: 8px; font-family: var(--hud); font-size: .75rem; color: var(--muted); }
+#flash{position:fixed;inset:0;background:var(--orange);opacity:0;pointer-events:none;z-index:999}
+#flash.go{animation:flash .35s ease-out forwards}
+@keyframes flash{0%{opacity:.3}100%{opacity:0}}
 
-#dot {
-  width: 10px; height: 10px; border-radius: 50%;
-  background: var(--muted); box-shadow: 0 0 6px var(--muted);
-  transition: background .3s, box-shadow .3s;
-}
-#dot.on  { background: var(--green); box-shadow: 0 0 10px var(--green); }
-#dot.blink { background: var(--amber); box-shadow: 0 0 10px var(--amber); animation: blink 1s infinite; }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+/* LIVELLE */
+.levels{padding:12px 14px 8px;display:flex;flex-direction:column;gap:10px}
+.plate{background:var(--plate);border:2px solid var(--border);border-radius:3px;padding:11px 13px 13px}
+.plate-label{font-size:.63rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:9px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding-bottom:6px}
+.plate-label .ax{font-family:var(--hud);font-size:.68rem;color:var(--orange);background:rgba(255,107,0,.12);padding:1px 6px;border-radius:2px}
+.scale-h{display:flex;justify-content:space-between;padding:0 2px;margin-bottom:3px}
+.scale-h span{font-family:var(--hud);font-size:.5rem;color:var(--muted)}
+.tube-h{width:100%;height:42px;background:linear-gradient(180deg,#0c0e0c,#121612 50%,#0c0e0c);border-radius:21px;border:2px solid #333;position:relative;overflow:hidden;box-shadow:inset 0 3px 10px rgba(0,0,0,.8),0 2px 4px rgba(0,0,0,.4)}
+.tube-h::before{content:'';position:absolute;inset:5px;border-radius:15px;background:linear-gradient(180deg,rgba(0,200,80,.05),rgba(0,200,80,.1))}
+.ref-l,.ref-r{position:absolute;top:7px;bottom:7px;width:2px;background:linear-gradient(180deg,transparent,rgba(255,107,0,.45),transparent);z-index:1}
+.ref-l{left:calc(50% - 11px)}.ref-r{left:calc(50% + 9px)}
+.bub-h{position:absolute;top:5px;bottom:5px;width:32px;border-radius:16px;transform:translateX(-50%);left:50%;will-change:left;transition:left .08s cubic-bezier(.2,.8,.3,1);z-index:2;
+  background:radial-gradient(ellipse 60% 40% at 35% 28%,rgba(255,255,255,.55) 0%,transparent 60%),radial-gradient(ellipse 80% 80% at 50% 50%,rgba(120,220,140,.75),rgba(40,160,70,.6) 60%,rgba(10,100,30,.4));
+  box-shadow:0 0 14px rgba(0,220,80,.5),0 0 4px rgba(0,220,80,.8),inset 0 -3px 6px rgba(0,0,0,.35),inset 0 2px 4px rgba(255,255,255,.2);overflow:hidden}
+.bub-h::before{content:'';position:absolute;top:3px;left:5px;right:11px;height:7px;border-radius:4px;background:rgba(255,255,255,.4);filter:blur(1px)}
+.bub-h.ok{background:radial-gradient(ellipse 60% 40% at 35% 28%,rgba(255,255,255,.65) 0%,transparent 60%),radial-gradient(ellipse 80% 80% at 50% 50%,rgba(180,255,120,.9),rgba(80,220,40,.75) 60%,rgba(20,150,10,.5));box-shadow:0 0 22px rgba(80,255,40,.7),0 0 8px rgba(80,255,40,.9),inset 0 -3px 6px rgba(0,0,0,.3),inset 0 2px 4px rgba(255,255,255,.3)}
+.row2{display:flex;gap:14px;align-items:flex-start}
+.tube-v{width:42px;height:130px;background:linear-gradient(90deg,#0c0e0c,#121612 50%,#0c0e0c);border-radius:21px;border:2px solid #333;position:relative;overflow:hidden;box-shadow:inset 3px 0 10px rgba(0,0,0,.8),2px 0 4px rgba(0,0,0,.4);flex-shrink:0}
+.tube-v::before{content:'';position:absolute;inset:5px;border-radius:15px;background:linear-gradient(90deg,rgba(0,200,80,.05),rgba(0,200,80,.1))}
+.ref-t,.ref-b{position:absolute;left:7px;right:7px;height:2px;background:linear-gradient(90deg,transparent,rgba(255,107,0,.45),transparent);z-index:1}
+.ref-t{top:calc(50% - 11px)}.ref-b{top:calc(50% + 9px)}
+.bub-v{position:absolute;left:5px;right:5px;height:32px;border-radius:16px;top:50%;transform:translateY(-50%);will-change:top;transition:top .08s cubic-bezier(.2,.8,.3,1);z-index:2;
+  background:radial-gradient(ellipse 40% 60% at 28% 35%,rgba(255,255,255,.55) 0%,transparent 60%),radial-gradient(ellipse 80% 80% at 50% 50%,rgba(120,220,140,.75),rgba(40,160,70,.6) 60%,rgba(10,100,30,.4));
+  box-shadow:0 0 14px rgba(0,220,80,.5),0 0 4px rgba(0,220,80,.8),inset -3px 0 6px rgba(0,0,0,.35),inset 2px 0 4px rgba(255,255,255,.2);overflow:hidden}
+.bub-v::before{content:'';position:absolute;top:5px;left:3px;bottom:11px;width:7px;border-radius:4px;background:rgba(255,255,255,.4);filter:blur(1px)}
+.bub-v.ok{background:radial-gradient(ellipse 40% 60% at 28% 35%,rgba(255,255,255,.65) 0%,transparent 60%),radial-gradient(ellipse 80% 80% at 50% 50%,rgba(180,255,120,.9),rgba(80,220,40,.75) 60%,rgba(20,150,10,.5));box-shadow:0 0 22px rgba(80,255,40,.7),0 0 8px rgba(80,255,40,.9),inset -3px 0 6px rgba(0,0,0,.3),inset 2px 0 4px rgba(255,255,255,.3)}
+.wrap2d{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px}
+.wrap2d-label{font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.circle{width:132px;height:132px;border-radius:50%;background:radial-gradient(circle at 40% 40%,#1a1e1a,#0d0f0d);border:2px solid #333;position:relative;box-shadow:inset 0 3px 14px rgba(0,0,0,.8);flex-shrink:0}
+.ring1,.ring2{position:absolute;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);border:1px solid rgba(255,107,0,.18)}
+.ring1{width:32px;height:32px}.ring2{width:68px;height:68px;border-color:rgba(255,107,0,.07)}
+.ch,.cv{position:absolute;background:rgba(255,107,0,.12);pointer-events:none}
+.ch{left:0;right:0;top:50%;height:1px;transform:translateY(-50%)}.cv{top:0;bottom:0;left:50%;width:1px;transform:translateX(-50%)}
+.bub2d{position:absolute;width:24px;height:24px;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);will-change:top,left;transition:top .08s cubic-bezier(.2,.8,.3,1),left .08s cubic-bezier(.2,.8,.3,1);
+  background:radial-gradient(circle at 35% 32%,rgba(255,255,255,.6) 0%,transparent 55%),radial-gradient(circle at 50% 50%,rgba(120,220,140,.85),rgba(40,160,70,.65) 50%,rgba(10,100,30,.45));
+  box-shadow:0 0 14px rgba(0,220,80,.55),0 0 4px rgba(0,220,80,.8),inset 0 -2px 5px rgba(0,0,0,.3)}
+.bub2d.ok{background:radial-gradient(circle at 35% 32%,rgba(255,255,255,.7) 0%,transparent 55%),radial-gradient(circle at 50% 50%,rgba(200,255,130,.95),rgba(80,220,40,.8) 50%,rgba(20,150,10,.5));box-shadow:0 0 26px rgba(80,255,40,.8),0 0 10px rgba(80,255,40,.9);animation:bok .4s ease-out}
+@keyframes bok{0%{transform:translate(-50%,-50%) scale(1.4)}100%{transform:translate(-50%,-50%) scale(1)}}
 
-/* ── BANNER ── */
-#banner {
-  margin: 14px 16px 0;
-  padding: 10px 16px;
-  border-radius: 4px;
-  border: 1px solid var(--muted);
-  font-family: var(--hud);
-  font-size: .8rem;
-  letter-spacing: .15em;
-  text-align: center;
-  color: var(--muted);
-  text-transform: uppercase;
-  transition: all .3s;
-}
-#banner.ok {
-  border-color: var(--green);
-  background: rgba(0,232,122,.08);
-  color: var(--green);
-  box-shadow: 0 0 20px rgba(0,232,122,.15);
-}
+/* HUD */
+.hud{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 14px}
+.hcell{background:var(--bg2);border:2px solid var(--border);border-radius:3px;padding:10px 12px 8px;position:relative;overflow:hidden;transition:border-color .2s}
+.hcell::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--border);transition:background .2s}
+.hcell.warn{border-color:rgba(255,107,0,.4)}.hcell.warn::before{background:var(--orange)}
+.hcell.ok{border-color:rgba(0,232,122,.4)}.hcell.ok::before{background:var(--green)}
+.hcell .k{font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:1px}
+.hcell .v{font-family:var(--hud);font-size:2.4rem;color:var(--text);display:block;line-height:1;letter-spacing:-.02em;transition:color .2s,text-shadow .2s}
+.hcell .v.warn{color:var(--orange);text-shadow:0 0 12px rgba(255,107,0,.4)}
+.hcell .v.ok{color:var(--green);text-shadow:0 0 14px rgba(0,232,122,.5)}
+.hcell .u{font-size:.65rem;color:var(--muted)}
 
-/* ── CARDS ── */
-.levels { padding: 14px 16px 8px; display: flex; flex-direction: column; gap: 14px; }
+/* TIMER */
+.timer-bar{margin:8px 14px 0;background:var(--plate);border:2px solid var(--border);border-radius:3px;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.timer-label{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.timer-val{font-family:var(--hud);font-size:1.8rem;color:var(--muted);line-height:1;transition:color .3s,text-shadow .3s;min-width:70px;text-align:right}
+.timer-val.running{color:var(--orange);text-shadow:0 0 10px rgba(255,107,0,.4)}
+.timer-val.done{color:var(--green);text-shadow:0 0 14px rgba(0,232,122,.5)}
+.timer-progress{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.timer-fill{height:100%;width:0%;background:var(--orange);border-radius:3px;transition:width .1s linear,background .3s}
+.timer-fill.done{background:var(--green)}
 
-.card {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 12px 14px;
-}
-.card-label {
-  font-size: .68rem; letter-spacing: .15em; text-transform: uppercase;
-  color: var(--muted); margin-bottom: 10px;
-  display: flex; justify-content: space-between;
-}
-.card-label .ax { color: var(--gdim); font-family: var(--hud); }
+/* CAL BADGE ROW */
+.cal-row{display:flex;align-items:center;justify-content:space-between;padding:6px 14px 0}
+#calBadge{font-family:var(--hud);font-size:.65rem;letter-spacing:.1em;border:1px solid;border-radius:3px;padding:3px 8px;transition:color .3s}
+#btnOpenCal{background:none;border:1px solid var(--border);border-radius:3px;color:var(--muted);font-family:var(--ui);font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;cursor:pointer}
+#btnOpenCal:hover{border-color:var(--orange);color:var(--orange)}
 
-/* tubo H */
-.tube-h {
-  width: 100%; height: 36px;
-  background: #0a120d; border-radius: 18px;
-  border: 2px solid var(--border);
-  position: relative; overflow: hidden;
-  box-shadow: inset 0 2px 8px rgba(0,0,0,.6);
-}
-.tube-h::before, .tube-h::after {
-  content: ''; position: absolute;
-  top: 8px; bottom: 8px; width: 2px;
-  background: rgba(0,232,122,.2);
-}
-.tube-h::before { left: calc(50% - 10px); }
-.tube-h::after  { left: calc(50% + 10px); }
+/* BOTTONI */
+.actions{padding:10px 14px 16px;display:flex;gap:8px;margin-top:auto}
+button{font-family:var(--ui);font-weight:700;font-size:.9rem;letter-spacing:.1em;text-transform:uppercase;border:none;border-radius:3px;cursor:pointer;padding:12px 0;transition:opacity .15s,transform .1s,box-shadow .15s}
+button:active{transform:scale(.97)}
+#btnConn{background:linear-gradient(180deg,var(--orange2),var(--orange));color:#000;flex:1;box-shadow:0 3px 12px rgba(255,107,0,.35)}
+#btnConn:disabled{background:var(--border);color:var(--muted);box-shadow:none;cursor:not-allowed}
+#btnDisc{background:transparent;border:2px solid var(--border);color:var(--muted);flex:1;display:none}
+#btnTara{background:var(--steel);border:2px solid var(--border);color:var(--text);padding:12px 14px;flex:0 0 auto}
+#btnTara:disabled{opacity:.3;cursor:not-allowed}
+#btnResetTara{background:var(--steel);border:2px solid var(--border);color:var(--muted);font-family:var(--ui);font-weight:700;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;border-radius:3px;padding:12px 10px;cursor:pointer;flex:0 0 auto}
+#btnResetTara:disabled{opacity:.3;cursor:not-allowed}
 
-.bub-h {
-  position: absolute; top: 4px; bottom: 4px; width: 28px;
-  border-radius: 14px;
-  background: radial-gradient(circle at 35% 35%, rgba(255,255,255,.5), rgba(0,232,122,.7) 60%);
-  box-shadow: 0 0 12px rgba(0,232,122,.6);
-  transform: translateX(-50%); left: 50%;
-  transition: left .1s cubic-bezier(.25,.8,.25,1);
-}
+#err{margin:6px 14px 0;padding:7px 11px;background:rgba(255,45,45,.08);border:1px solid rgba(255,45,45,.3);border-radius:2px;font-size:.7rem;color:var(--red);font-family:var(--hud);display:none;line-height:1.5}
 
-/* tubo V + cerchio 2D */
-.row2 { display: flex; align-items: center; gap: 16px; }
+/* MISURE */
+.pg-misure{padding:12px 14px;display:flex;flex-direction:column;gap:10px;flex:1;overflow:hidden}
+.save-form{background:var(--plate);border:2px solid var(--border);border-radius:3px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.save-form .row{display:flex;gap:8px;align-items:center}
+.save-form label{font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px}
+.save-form input{flex:1;background:var(--bg2);border:2px solid var(--border);border-radius:3px;color:var(--white);font-family:var(--hud);font-size:.85rem;padding:8px 10px;outline:none;transition:border-color .15s}
+.save-form input:focus{border-color:var(--orange)}
+.save-form input::placeholder{color:var(--muted)}
+.cur-val{font-family:var(--hud);font-size:.8rem;color:var(--orange);background:rgba(255,107,0,.1);border:1px solid rgba(255,107,0,.2);border-radius:2px;padding:6px 10px;white-space:nowrap}
+.btn-save{background:var(--orange);color:#000;font-family:var(--ui);font-weight:700;font-size:.85rem;letter-spacing:.1em;text-transform:uppercase;border:none;border-radius:3px;padding:9px 16px;cursor:pointer;white-space:nowrap}
+.btn-save:disabled{opacity:.3;cursor:not-allowed}
+.misure-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px;min-height:0}
+.misura-item{background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:9px 12px;display:flex;align-items:center;gap:10px}
+.misura-item .mi-name{flex:1;font-size:.85rem;font-weight:600;letter-spacing:.05em;color:var(--text)}
+.misura-item .mi-vals{font-family:var(--hud);font-size:.75rem;color:var(--orange);white-space:nowrap}
+.misura-item .mi-time{font-family:var(--hud);font-size:.58rem;color:var(--muted);white-space:nowrap}
+.misura-item .mi-del{background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;padding:2px 4px;line-height:1}
+.misura-item .mi-del:hover{color:var(--red)}
+.list-actions{display:flex;gap:8px}
+.btn-export{flex:1;background:var(--steel);border:2px solid var(--border);color:var(--text);font-family:var(--ui);font-weight:700;font-size:.82rem;letter-spacing:.1em;text-transform:uppercase;border-radius:3px;padding:10px;cursor:pointer}
+.btn-clear{background:transparent;border:2px solid rgba(255,45,45,.3);color:rgba(255,45,45,.6);font-family:var(--ui);font-weight:700;font-size:.82rem;letter-spacing:.1em;text-transform:uppercase;border-radius:3px;padding:10px 14px;cursor:pointer}
 
-.tube-v {
-  height: 80px; width: 36px;
-  background: #0a120d; border-radius: 18px;
-  border: 2px solid var(--border);
-  position: relative; overflow: hidden;
-  box-shadow: inset 2px 0 8px rgba(0,0,0,.6); flex-shrink: 0;
-}
-.tube-v::before, .tube-v::after {
-  content: ''; position: absolute;
-  left: 8px; right: 8px; height: 2px;
-  background: rgba(0,232,122,.2);
-}
-.tube-v::before { top: calc(50% - 10px); }
-.tube-v::after  { top: calc(50% + 10px); }
+/* TARGET */
+.pg-target{padding:12px 14px;display:flex;flex-direction:column;gap:12px;flex:1}
+.target-card{background:var(--plate);border:2px solid var(--border);border-radius:3px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.target-card h3{font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);padding-bottom:8px}
+.target-row{display:flex;align-items:center;gap:10px}
+.target-row label{font-size:.68rem;letter-spacing:.1em;color:var(--muted);white-space:nowrap;width:80px}
+.target-input{flex:1;background:var(--bg2);border:2px solid var(--border);border-radius:3px;color:var(--white);font-family:var(--hud);font-size:1.1rem;padding:8px 10px;outline:none;transition:border-color .15s;text-align:center}
+.target-input:focus{border-color:var(--orange)}
+.target-unit{font-family:var(--hud);font-size:.8rem;color:var(--muted)}
+.preset-row{display:flex;gap:6px;flex-wrap:wrap}
+.preset{background:var(--steel);border:1px solid var(--border);border-radius:3px;font-family:var(--hud);font-size:.72rem;color:var(--text);padding:5px 10px;cursor:pointer;transition:background .15s,border-color .15s;white-space:nowrap}
+.preset:hover,.preset.active{background:rgba(255,107,0,.15);border-color:var(--orange);color:var(--orange)}
+.btn-target-set{background:linear-gradient(180deg,var(--orange2),var(--orange));color:#000;font-family:var(--ui);font-weight:700;font-size:.9rem;letter-spacing:.1em;text-transform:uppercase;border:none;border-radius:3px;padding:12px;cursor:pointer}
+.btn-target-clr{background:var(--steel);border:2px solid var(--border);color:var(--muted);font-family:var(--ui);font-weight:700;font-size:.9rem;letter-spacing:.1em;text-transform:uppercase;border-radius:3px;padding:12px;cursor:pointer}
+.target-status{background:var(--bg2);border:2px solid var(--border);border-radius:3px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.ts-label{font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.ts-val{font-family:var(--hud);font-size:1.1rem;color:var(--text)}
+.ts-delta{font-family:var(--hud);font-size:1.8rem;color:var(--muted);transition:color .2s}
+.ts-delta.near{color:var(--orange);text-shadow:0 0 10px rgba(255,107,0,.4)}
+.ts-delta.ok{color:var(--green);text-shadow:0 0 14px rgba(0,232,122,.5)}
 
-.bub-v {
-  position: absolute; left: 4px; right: 4px; height: 28px;
-  border-radius: 14px;
-  background: radial-gradient(circle at 35% 35%, rgba(255,255,255,.5), rgba(0,232,122,.7) 60%);
-  box-shadow: 0 0 12px rgba(0,232,122,.6);
-  top: 50%; transform: translateY(-50%);
-  transition: top .1s cubic-bezier(.25,.8,.25,1);
-}
+/* MODAL CALIBRAZIONE */
+#calModal{position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.88);display:none;align-items:flex-end;justify-content:center}
+.cal-sheet{background:var(--bg2);border-top:3px solid var(--orange);border-radius:12px 12px 0 0;width:100%;max-width:480px;padding:24px 22px 32px;animation:slideup .3s ease-out}
+@keyframes slideup{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.cal-sheet h2{font-family:var(--ui);font-size:1.1rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--white);margin-bottom:6px}
+.cal-sub{font-family:var(--ui);font-size:.82rem;color:var(--muted);line-height:1.55;margin-bottom:14px}
+.cal-sub strong{color:var(--orange)}
+.cal-warning{background:rgba(255,183,0,.08);border:1px solid rgba(255,183,0,.3);border-radius:3px;padding:10px 12px;margin-bottom:14px;font-family:var(--ui);font-size:.8rem;color:#ffb700;line-height:1.5}
+.cal-illustration{background:var(--plate);border:2px solid var(--border);border-radius:4px;padding:14px;margin-bottom:14px;text-align:center;font-size:2rem;letter-spacing:.1em}
+.cal-illustration .cal-label{font-family:var(--hud);font-size:.62rem;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-top:6px}
+.cal-btns{display:flex;gap:10px}
+.btn-cal-ok{flex:1;background:linear-gradient(180deg,var(--orange2),var(--orange));color:#000;font-family:var(--ui);font-weight:700;font-size:.95rem;letter-spacing:.1em;text-transform:uppercase;border:none;border-radius:3px;padding:14px;cursor:pointer}
+.btn-cal-skip{background:var(--steel);border:2px solid var(--border);color:var(--muted);font-family:var(--ui);font-weight:700;font-size:.9rem;letter-spacing:.08em;text-transform:uppercase;border-radius:3px;padding:14px 18px;cursor:pointer}
 
-/* cerchio 2D */
-.wrap2d { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.wrap2d-label { font-size: .65rem; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); }
-.circle {
-  width: 130px; height: 130px; border-radius: 50%;
-  background: #0a120d; border: 2px solid var(--border);
-  position: relative; box-shadow: inset 0 2px 12px rgba(0,0,0,.7);
-}
-.circle::before {
-  content: ''; position: absolute; top: 50%; left: 50%;
-  transform: translate(-50%,-50%);
-  width: 28px; height: 28px; border-radius: 50%;
-  border: 1px solid rgba(0,232,122,.2);
-}
-.ch, .cv { position: absolute; background: rgba(0,232,122,.12); pointer-events: none; }
-.ch { left: 0; right: 0; top: 50%; height: 1px; transform: translateY(-50%); }
-.cv { top: 0; bottom: 0; left: 50%; width: 1px; transform: translateX(-50%); }
-.bub-2d {
-  position: absolute; width: 22px; height: 22px; border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, rgba(255,255,255,.6), rgba(0,232,122,.8) 60%);
-  box-shadow: 0 0 14px rgba(0,232,122,.7);
-  top: 50%; left: 50%; transform: translate(-50%,-50%);
-  transition: top .1s cubic-bezier(.25,.8,.25,1), left .1s cubic-bezier(.25,.8,.25,1);
-}
-.bub-2d.ok { background: radial-gradient(circle at 35% 35%, #fff, #00ff88 60%); box-shadow: 0 0 20px #00ff88; }
+/* TOAST */
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--steel);border:1px solid var(--border);border-radius:4px;font-family:var(--hud);font-size:.72rem;color:var(--text);letter-spacing:.08em;padding:9px 16px;white-space:nowrap;z-index:800;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;max-width:90vw;white-space:normal;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* ── HUD ── */
-.hud {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 8px; padding: 0 16px;
-}
-.hcell {
-  background: var(--panel); border: 1px solid var(--border);
-  border-radius: 4px; padding: 10px; text-align: center;
-}
-.hcell .k { font-size: .6rem; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 4px; }
-.hcell .v { font-family: var(--hud); font-size: 1.4rem; color: var(--green); display: block; line-height: 1; }
-.hcell .v.warn { color: var(--amber); }
-.hcell .v.ok   { color: var(--green); text-shadow: 0 0 8px var(--green); }
-.hcell .u { font-size: .6rem; color: var(--muted); }
+/* TUTORIAL */
+#tutorial{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0}
+.tut-sheet{background:var(--bg2);border-top:3px solid var(--orange);border-radius:12px 12px 0 0;width:100%;max-width:480px;padding:22px 20px 30px;display:flex;flex-direction:column;gap:0;animation:slideup .35s ease-out}
+.tut-header{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.tut-icon{width:44px;height:44px;background:var(--orange);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
+.tut-header h2{font-family:var(--ui);font-size:1.15rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--white);line-height:1.2}
+.tut-header p{font-family:var(--ui);font-size:.8rem;font-weight:400;color:var(--muted);letter-spacing:.03em;margin-top:2px}
+.tut-step{display:flex;align-items:flex-start;gap:14px;padding:12px 0;border-bottom:1px solid var(--border)}
+.tut-step:last-of-type{border-bottom:none}
+.tut-num{width:30px;height:30px;border-radius:50%;background:var(--steel);border:2px solid var(--orange);display:flex;align-items:center;justify-content:center;font-family:var(--hud);font-size:.85rem;color:var(--orange);flex-shrink:0;margin-top:1px}
+.tut-step-body{flex:1}
+.tut-step-body strong{font-family:var(--ui);font-size:.95rem;font-weight:700;letter-spacing:.06em;color:var(--white);display:block;margin-bottom:3px}
+.tut-step-body p{font-family:var(--ui);font-size:.8rem;font-weight:400;color:var(--muted);line-height:1.5}
+.tut-tip{display:inline-block;margin-top:5px;background:rgba(255,107,0,.12);border:1px solid rgba(255,107,0,.25);border-radius:3px;padding:3px 8px;font-family:var(--hud);font-size:.65rem;color:var(--orange)}
+.btn-tut-ok{margin-top:18px;background:linear-gradient(180deg,var(--orange2),var(--orange));color:#000;font-family:var(--ui);font-weight:700;font-size:1rem;letter-spacing:.12em;text-transform:uppercase;border:none;border-radius:4px;padding:14px;cursor:pointer;width:100%;box-shadow:0 4px 16px rgba(255,107,0,.4)}
+.tut-skip{text-align:center;margin-top:10px;font-family:var(--ui);font-size:.75rem;color:var(--muted);cursor:pointer;letter-spacing:.06em}
+#btnHelp{position:fixed;bottom:52px;right:14px;width:38px;height:38px;border-radius:50%;background:var(--steel);border:2px solid var(--border);color:var(--muted);font-family:var(--hud);font-size:.95rem;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:50;transition:border-color .15s,color .15s}
+#btnHelp:hover{border-color:var(--orange);color:var(--orange)}
 
-/* ── ERRORE ── */
-#err {
-  margin: 0 16px 0;
-  padding: 8px 12px;
-  background: rgba(255,61,61,.1);
-  border: 1px solid rgba(255,61,61,.3);
-  border-radius: 4px;
-  font-size: .75rem; color: var(--red);
-  font-family: var(--hud);
-  display: none;
-}
-
-/* ── BOTTONI ── */
-.actions { padding: 14px 16px 20px; display: flex; gap: 10px; margin-top: auto; }
-button {
-  font-family: var(--ui); font-weight: 700; font-size: .9rem;
-  letter-spacing: .08em; text-transform: uppercase;
-  border: none; border-radius: 4px; cursor: pointer;
-  padding: 13px 0; transition: opacity .15s, transform .1s;
-  -webkit-tap-highlight-color: transparent;
-}
-button:active { transform: scale(.97); }
-
-#btnConn { background: var(--green); color: #000; flex: 1; }
-#btnDisc { background: transparent; border: 1px solid var(--border); color: var(--muted); flex: 1; display: none; }
-#btnTara { background: transparent; border: 1px solid var(--border); color: var(--text); flex: 0 0 auto; padding: 13px 18px; }
-#btnTara:disabled { opacity: .3; cursor: not-allowed; }
-
-footer {
-  padding: 8px 16px; font-size: .6rem; color: var(--muted);
-  letter-spacing: .08em; text-align: center;
-  border-top: 1px solid var(--border); font-family: var(--hud);
-}
+footer{padding:7px 14px;font-size:.57rem;color:var(--muted);letter-spacing:.1em;text-align:center;border-top:1px solid var(--border);font-family:var(--hud);text-transform:uppercase}
 </style>
 </head>
 <body>
 
+<div id="flash"></div>
+<div id="toast"></div>
+
 <header>
   <div class="logo">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="12" cy="12" r="3"/>
-      <line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/>
-      <line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/>
-    </svg>
-    Livella Pro <span class="sub">BLE</span>
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round">
+        <circle cx="12" cy="12" r="3"/>
+        <line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/>
+        <line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/>
+      </svg>
+    </div>
+    <div>Livella Pro</div>
   </div>
-  <div class="status-row">
-    <span id="stxt">OFFLINE</span>
-    <div id="dot"></div>
+  <div class="header-right">
+    <!-- SELETTORE LINGUA -->
+    <div class="lang-btn" id="langBtn">
+      <span class="lang-flag" id="langFlag">🇮🇹</span>
+      <span id="langCode">IT</span>
+      <div class="lang-dropdown" id="langDropdown">
+        <div class="lang-opt" data-lang="it"><span>🇮🇹</span> Italiano</div>
+        <div class="lang-opt" data-lang="en"><span>🇬🇧</span> English</div>
+        <div class="lang-opt" data-lang="fr"><span>🇫🇷</span> Français</div>
+        <div class="lang-opt" data-lang="es"><span>🇪🇸</span> Español</div>
+      </div>
+    </div>
+    <div class="status-pill">
+      <div id="dot"></div>
+      <span id="stxt">OFFLINE</span>
+    </div>
   </div>
 </header>
 
-<div id="banner">○ · · IN ATTESA · · ○</div>
+<div class="tabs">
+  <div class="tab active" data-page="pg-livella" data-i="tab_livella">Livella</div>
+  <div class="tab" data-page="pg-misure" data-i="tab_misure">Misure</div>
+  <div class="tab" data-page="pg-target" data-i="tab_target">Angolo Target</div>
+</div>
 
-<div class="levels">
-
-  <!-- ROLL -->
-  <div class="card">
-    <div class="card-label"><span>Sinistra / Destra</span><span class="ax">ROLL</span></div>
-    <div class="tube-h" id="tubeH"><div class="bub-h" id="bubH"></div></div>
-  </div>
-
-  <!-- PITCH + 2D -->
-  <div class="card">
-    <div class="card-label"><span>Avanti / Indietro</span><span class="ax">PITCH</span></div>
-    <div class="row2">
-      <div class="tube-v" id="tubeV"><div class="bub-v" id="bubV"></div></div>
-      <div class="wrap2d">
-        <span class="wrap2d-label">Piano 2D</span>
-        <div class="circle">
-          <div class="ch"></div><div class="cv"></div>
-          <div class="bub-2d" id="bub2d"></div>
+<!-- ═══ PAGINA LIVELLA ═══ -->
+<div class="page active" id="pg-livella">
+  <div id="banner">○ · · <span data-i="waiting"></span> · · ○</div>
+  <div class="levels">
+    <div class="plate">
+      <div class="plate-label"><span data-i="lr"></span><span class="ax">ROLL</span></div>
+      <div class="scale-h"><span>-5°</span><span>-2°</span><span>0°</span><span>+2°</span><span>+5°</span></div>
+      <div class="tube-h" id="tubeH"><div class="ref-l"></div><div class="ref-r"></div><div class="bub-h" id="bubH"></div></div>
+    </div>
+    <div class="plate">
+      <div class="plate-label"><span data-i="fb"></span><span class="ax">PITCH</span></div>
+      <div class="row2">
+        <div class="tube-v" id="tubeV"><div class="ref-t"></div><div class="ref-b"></div><div class="bub-v" id="bubV"></div></div>
+        <div class="wrap2d">
+          <span class="wrap2d-label" data-i="plane2d">Piano 2D</span>
+          <div class="circle"><div class="ring2"></div><div class="ring1"></div><div class="ch"></div><div class="cv"></div><div class="bub2d" id="bub2d"></div></div>
         </div>
       </div>
     </div>
   </div>
-
+  <div class="hud" style="margin-top:8px;">
+    <div class="hcell" id="cellRoll"><span class="k">Roll</span><span class="v" id="hRoll">--.-</span><span class="u">°</span></div>
+    <div class="hcell" id="cellPitch"><span class="k">Pitch</span><span class="v" id="hPitch">--.-</span><span class="u">°</span></div>
+  </div>
+  <div class="timer-bar">
+    <div><div class="timer-label" data-i="stability"></div></div>
+    <div class="timer-progress"><div class="timer-fill" id="timerFill"></div></div>
+    <div class="timer-val" id="timerVal">0.0s</div>
+  </div>
+  <div class="cal-row">
+    <span id="calBadge"></span>
+    <button id="btnOpenCal" data-i="recalibrate">Ricalibrare</button>
+  </div>
+  <div id="err"></div>
+  <div class="actions">
+    <button id="btnConn" data-i="connect">⬡ Connetti Sensore</button>
+    <button id="btnDisc" data-i="disconnect">Disconnetti</button>
+    <button id="btnTara">TARA</button>
+    <button id="btnResetTara" disabled data-i="reset">↺ Reset</button>
+  </div>
 </div>
 
-<!-- HUD -->
-<div class="hud">
-  <div class="hcell"><span class="k">Roll</span><span class="v" id="hRoll">--.-</span><span class="u">°</span></div>
-  <div class="hcell"><span class="k">Pitch</span><span class="v" id="hPitch">--.-</span><span class="u">°</span></div>
+<!-- ═══ PAGINA MISURE ═══ -->
+<div class="page" id="pg-misure">
+  <div class="pg-misure">
+    <div class="save-form">
+      <label data-i="save_label">Salva misura corrente</label>
+      <div class="row">
+        <input type="text" id="misNome" maxlength="40" data-i-placeholder="measure_placeholder">
+        <div class="cur-val" id="curVal">--</div>
+        <button class="btn-save" id="btnSave" disabled data-i="save_btn">Salva</button>
+      </div>
+    </div>
+    <div class="misure-list" id="misureList"></div>
+    <div class="list-actions">
+      <button class="btn-export" id="btnExport" data-i="export_btn">⬇ Esporta CSV</button>
+      <button class="btn-clear" id="btnClear" data-i="clear_btn">Cancella tutto</button>
+    </div>
+  </div>
 </div>
 
-<div id="err"></div>
-
-<div class="actions">
-  <button id="btnConn">⬡ Connetti BLE</button>
-  <button id="btnDisc">Disconnetti</button>
-  <button id="btnTara" disabled>TARA</button>
+<!-- ═══ PAGINA TARGET ═══ -->
+<div class="page" id="pg-target">
+  <div class="pg-target">
+    <div class="target-card">
+      <h3 data-i="target_title">Imposta angolo obiettivo</h3>
+      <div class="target-row"><label data-i="roll_target">Roll target</label><input class="target-input" id="tRoll" type="number" step="0.1" placeholder="0.0"><span class="target-unit">°</span></div>
+      <div class="target-row"><label data-i="pitch_target">Pitch target</label><input class="target-input" id="tPitch" type="number" step="0.1" placeholder="0.0"><span class="target-unit">°</span></div>
+      <div>
+        <div style="font-size:.58rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;" data-i="presets">Preset comuni</div>
+        <div class="preset-row">
+          <div class="preset" data-r="0" data-p="0" data-i="preset_flat">Piano (0°)</div>
+          <div class="preset" data-r="1" data-p="0">1% scarico</div>
+          <div class="preset" data-r="2" data-p="0">2% scarico</div>
+          <div class="preset" data-r="0" data-p="1">Rampa 1%</div>
+          <div class="preset" data-r="0" data-p="2">Rampa 2%</div>
+          <div class="preset" data-r="45" data-p="0">45°</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn-target-set" id="btnTargetSet" style="flex:1" data-i="set_target">Imposta Target</button>
+        <button class="btn-target-clr" id="btnTargetClr" data-i="reset_target">Reset</button>
+      </div>
+    </div>
+    <div class="target-status">
+      <div class="ts-label" data-i="active_target">Target attivo</div>
+      <div class="ts-val" id="tsActive" data-i="no_target">Nessun target</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
+        <div><div class="ts-label">Δ Roll</div><div class="ts-delta" id="tsDeltaR">--</div></div>
+        <div><div class="ts-label">Δ Pitch</div><div class="ts-delta" id="tsDeltaP">--</div></div>
+      </div>
+    </div>
+  </div>
 </div>
 
-<footer>ESP32-C3 · MPU6050 · Bluefy (iOS) · Chrome (Android)</footer>
+<!-- MODAL CALIBRAZIONE -->
+<div id="calModal">
+  <div class="cal-sheet">
+    <h2>📐 <span data-i="cal_title">Calibrazione iniziale</span></h2>
+    <p class="cal-sub" data-i="cal_sub">Appoggia il sensore su un <strong>piano di riferimento in bolla</strong>, poi premi <strong>Calibra ora</strong>.</p>
+    <div class="cal-warning" data-i="cal_warning">⚠ Assicurati che il sensore sia davvero in bolla prima di premere. Se sbagli puoi sempre ricalibrate premendo il tasto <strong>"Ricalibrare"</strong>.</div>
+    <div class="cal-illustration">━━●━━<div class="cal-label" data-i="cal_illus">Sensore orizzontale</div></div>
+    <div class="cal-btns">
+      <button class="btn-cal-skip" id="btnCalSkip" data-i="cal_later">Dopo</button>
+      <button class="btn-cal-ok" id="btnCalOk" data-i="cal_now">✔ Calibra ora</button>
+    </div>
+  </div>
+</div>
+
+<!-- TUTORIAL -->
+<div id="tutorial">
+  <div class="tut-sheet">
+    <div class="tut-header">
+      <div class="tut-icon">📐</div>
+      <div><h2 data-i="tut_title">Benvenuto in Livella Pro</h2><p data-i="tut_sub">Tre passi per iniziare</p></div>
+    </div>
+    <div class="tut-step">
+      <div class="tut-num">1</div>
+      <div class="tut-step-body">
+        <strong data-i="tut1_title">Accendi il sensore</strong>
+        <p data-i="tut1_body">Collega il sensore alla corrente (presa USB o batteria). La lucina lampeggia quando è pronto.</p>
+        <span class="tut-tip" data-i="tut1_tip">⏱ Aspetta 3–4 secondi dopo l'accensione</span>
+      </div>
+    </div>
+    <div class="tut-step">
+      <div class="tut-num">2</div>
+      <div class="tut-step-body">
+        <strong data-i="tut2_title">Connetti il sensore</strong>
+        <p data-i="tut2_body">Premi il bottone arancione e seleziona <strong style="color:var(--orange)">Livella Pro</strong> dalla lista.</p>
+        <span class="tut-tip" data-i="tut2_tip">📱 iPhone: usa Bluefy · Android: usa Chrome</span>
+      </div>
+    </div>
+    <div class="tut-step">
+      <div class="tut-num">3</div>
+      <div class="tut-step-body">
+        <strong data-i="tut3_title">Calibra e usa</strong>
+        <p data-i="tut3_body">La prima volta ti verrà chiesto di calibrare su un piano in bolla. Se sbagli puoi sempre ricalibrare. In cantiere: <strong>TARA</strong> = zero temporaneo · <strong>↺ Reset</strong> = torna alla calibrazione.</p>
+        <span class="tut-tip" data-i="tut3_tip">📳 Il telefono vibra quando sei IN BOLLA</span>
+      </div>
+    </div>
+    <button class="btn-tut-ok" id="btnTutOk" data-i="tut_ok">Ho capito, inizia →</button>
+    <div class="tut-skip" id="btnTutSkip" data-i="tut_skip">Non mostrare più</div>
+  </div>
+</div>
+
+<button id="btnHelp">?</button>
+<footer data-i="footer_txt">Bluefy (iOS) · Chrome (Android) · 10Hz</footer>
 
 <script>
+// ══════════════════════════════════════════════
+//  TRADUZIONI
+// ══════════════════════════════════════════════
+const LANGS = {
+  it: {
+    flag:'🇮🇹', code:'IT',
+    tab_livella:'Livella', tab_misure:'Misure', tab_target:'Angolo Target',
+    waiting:'IN ATTESA', in_bolla:'IN BOLLA', target_reached:'TARGET RAGGIUNTO',
+    lr:'Sinistra / Destra', fb:'Avanti / Indietro', plane2d:'Piano 2D',
+    stability:'Stabilità bolla',
+    calibrated:'✔ Calibrato', not_calibrated:'⚠ Non calibrato',
+    recalibrate:'Ricalibrare',
+    connect:'⬡ Connetti Sensore', disconnect:'Disconnetti', reset:'↺ Reset',
+    save_label:'Salva misura corrente', measure_placeholder:'es. Trave sx, Pavimento bagno…',
+    save_btn:'Salva', export_btn:'⬇ Esporta CSV', clear_btn:'Cancella tutto',
+    confirm_clear:'Cancellare tutte le misure?',
+    target_title:'Imposta angolo obiettivo', roll_target:'Roll target', pitch_target:'Pitch target',
+    presets:'Preset comuni', preset_flat:'Piano (0°)',
+    set_target:'Imposta Target', reset_target:'Reset',
+    active_target:'Target attivo', no_target:'Nessun target',
+    cal_title:'Calibrazione iniziale',
+    cal_sub:'Appoggia il sensore su un <strong>piano di riferimento in bolla</strong>, poi premi <strong>Calibra ora</strong>.',
+    cal_warning:'⚠ Assicurati che il sensore sia davvero in bolla prima di premere. Se sbagli puoi sempre ricalibrate premendo il tasto <strong>"Ricalibrare"</strong>.',
+    cal_illus:'Sensore orizzontale', cal_later:'Dopo', cal_now:'✔ Calibra ora',
+    tut_title:'Benvenuto in Livella Pro', tut_sub:'Tre passi per iniziare',
+    tut1_title:'Accendi il sensore', tut1_body:'Collega il sensore alla corrente (presa USB o batteria). La lucina lampeggia quando è pronto.', tut1_tip:'⏱ Aspetta 3–4 secondi dopo l\'accensione',
+    tut2_title:'Connetti il sensore', tut2_body:'Premi il bottone arancione e seleziona <strong style="color:var(--orange)">Livella Pro</strong> dalla lista.', tut2_tip:'📱 iPhone: usa Bluefy · Android: usa Chrome',
+    tut3_title:'Calibra e usa', tut3_body:'La prima volta ti verrà chiesto di calibrare su un piano in bolla. Se sbagli puoi sempre ricalibrare. In cantiere: <strong>TARA</strong> = zero temporaneo · <strong>↺ Reset</strong> = torna alla calibrazione.', tut3_tip:'📳 Il telefono vibra quando sei IN BOLLA',
+    tut_ok:'Ho capito, inizia →', tut_skip:'Non mostrare più',
+    toast_tara:'Tara impostata — premi ↺ Reset per tornare alla calibrazione',
+    toast_reset:'Tornato alla calibrazione iniziale',
+    toast_cal_saved:'✔ Calibrazione salvata',
+    toast_connect_first:'Connetti il sensore prima di calibrare',
+    toast_no_measures:'Nessuna misura da esportare',
+    ble_not_found:'Apri in Bluefy (iOS) o Chrome (Android).',
+    err_gatt:'Connessione GATT fallita: ', err_svc:'Servizio NUS non trovato — hai scelto "Livella Pro"? ', err_char:'Caratteristica TX: ',
+    footer_txt:'Bluefy (iOS) · Chrome (Android) · 10Hz',
+  },
+  en: {
+    flag:'🇬🇧', code:'EN',
+    tab_livella:'Level', tab_misure:'Measures', tab_target:'Target Angle',
+    waiting:'WAITING', in_bolla:'LEVEL', target_reached:'TARGET REACHED',
+    lr:'Left / Right', fb:'Forward / Backward', plane2d:'2D Plane',
+    stability:'Bubble stability',
+    calibrated:'✔ Calibrated', not_calibrated:'⚠ Not calibrated',
+    recalibrate:'Recalibrate',
+    connect:'⬡ Connect Sensor', disconnect:'Disconnect', reset:'↺ Reset',
+    save_label:'Save current reading', measure_placeholder:'e.g. Left beam, Bathroom floor…',
+    save_btn:'Save', export_btn:'⬇ Export CSV', clear_btn:'Clear all',
+    confirm_clear:'Delete all measurements?',
+    target_title:'Set target angle', roll_target:'Roll target', pitch_target:'Pitch target',
+    presets:'Common presets', preset_flat:'Flat (0°)',
+    set_target:'Set Target', reset_target:'Reset',
+    active_target:'Active target', no_target:'No target',
+    cal_title:'Initial calibration',
+    cal_sub:'Place the sensor on a <strong>level reference surface</strong>, then press <strong>Calibrate now</strong>.',
+    cal_warning:'⚠ Make sure the sensor is truly level before pressing. If you make a mistake you can always redo it by pressing <strong>"Recalibrate"</strong>.',
+    cal_illus:'Sensor horizontal', cal_later:'Later', cal_now:'✔ Calibrate now',
+    tut_title:'Welcome to Livella Pro', tut_sub:'Three steps to get started',
+    tut1_title:'Power on the sensor', tut1_body:'Connect the sensor to power (USB or battery). The LED flashes when ready.', tut1_tip:'⏱ Wait 3–4 seconds after switching on',
+    tut2_title:'Connect the sensor', tut2_body:'Tap the orange button and select <strong style="color:var(--orange)">Livella Pro</strong> from the list.', tut2_tip:'📱 iPhone: use Bluefy · Android: use Chrome',
+    tut3_title:'Calibrate and use', tut3_body:'The first time you\'ll be asked to calibrate on a level surface. You can always redo it. On site: <strong>TARA</strong> = temporary zero · <strong>↺ Reset</strong> = back to calibration.', tut3_tip:'📳 Phone vibrates when LEVEL',
+    tut_ok:'Got it, let\'s go →', tut_skip:'Don\'t show again',
+    toast_tara:'Zero set — press ↺ Reset to return to calibration',
+    toast_reset:'Returned to initial calibration',
+    toast_cal_saved:'✔ Calibration saved',
+    toast_connect_first:'Connect the sensor before calibrating',
+    toast_no_measures:'No measurements to export',
+    ble_not_found:'Open in Bluefy (iOS) or Chrome (Android).',
+    err_gatt:'GATT connection failed: ', err_svc:'NUS service not found — did you select "Livella Pro"? ', err_char:'TX characteristic: ',
+    footer_txt:'Bluefy (iOS) · Chrome (Android) · 10Hz',
+  },
+  fr: {
+    flag:'🇫🇷', code:'FR',
+    tab_livella:'Niveau', tab_misure:'Mesures', tab_target:'Angle Cible',
+    waiting:'EN ATTENTE', in_bolla:'À NIVEAU', target_reached:'CIBLE ATTEINTE',
+    lr:'Gauche / Droite', fb:'Avant / Arrière', plane2d:'Plan 2D',
+    stability:'Stabilité bulle',
+    calibrated:'✔ Calibré', not_calibrated:'⚠ Non calibré',
+    recalibrate:'Recalibrer',
+    connect:'⬡ Connecter Capteur', disconnect:'Déconnecter', reset:'↺ Reset',
+    save_label:'Enregistrer la mesure actuelle', measure_placeholder:'ex. Poutre gauche, Sol salle de bain…',
+    save_btn:'Enregistrer', export_btn:'⬇ Exporter CSV', clear_btn:'Tout effacer',
+    confirm_clear:'Supprimer toutes les mesures ?',
+    target_title:'Définir l\'angle cible', roll_target:'Roulis cible', pitch_target:'Tangage cible',
+    presets:'Préréglages courants', preset_flat:'À plat (0°)',
+    set_target:'Définir Cible', reset_target:'Réinitialiser',
+    active_target:'Cible active', no_target:'Aucune cible',
+    cal_title:'Calibration initiale',
+    cal_sub:'Posez le capteur sur une <strong>surface de référence à niveau</strong>, puis appuyez sur <strong>Calibrer maintenant</strong>.',
+    cal_warning:'⚠ Assurez-vous que le capteur est bien à niveau avant d\'appuyer. En cas d\'erreur, appuyez sur <strong>"Recalibrer"</strong> pour recommencer.',
+    cal_illus:'Capteur horizontal', cal_later:'Plus tard', cal_now:'✔ Calibrer maintenant',
+    tut_title:'Bienvenue dans Livella Pro', tut_sub:'Trois étapes pour commencer',
+    tut1_title:'Allumer le capteur', tut1_body:'Connectez le capteur à l\'alimentation (USB ou batterie). La LED clignote quand il est prêt.', tut1_tip:'⏱ Attendez 3–4 secondes après la mise en marche',
+    tut2_title:'Connecter le capteur', tut2_body:'Appuyez sur le bouton orange et sélectionnez <strong style="color:var(--orange)">Livella Pro</strong> dans la liste.', tut2_tip:'📱 iPhone : utilisez Bluefy · Android : utilisez Chrome',
+    tut3_title:'Calibrer et utiliser', tut3_body:'La première fois, il vous sera demandé de calibrer sur une surface à niveau. Vous pouvez toujours le refaire. Sur chantier : <strong>TARA</strong> = zéro temporaire · <strong>↺ Reset</strong> = retour à la calibration.', tut3_tip:'📳 Le téléphone vibre quand À NIVEAU',
+    tut_ok:'Compris, démarrer →', tut_skip:'Ne plus afficher',
+    toast_tara:'Zéro défini — appuyez ↺ Reset pour revenir à la calibration',
+    toast_reset:'Retour à la calibration initiale',
+    toast_cal_saved:'✔ Calibration enregistrée',
+    toast_connect_first:'Connectez le capteur avant de calibrer',
+    toast_no_measures:'Aucune mesure à exporter',
+    ble_not_found:'Ouvrez dans Bluefy (iOS) ou Chrome (Android).',
+    err_gatt:'Connexion GATT échouée : ', err_svc:'Service NUS introuvable — avez-vous sélectionné "Livella Pro" ? ', err_char:'Caractéristique TX : ',
+    footer_txt:'Bluefy (iOS) · Chrome (Android) · 10Hz',
+  },
+  es: {
+    flag:'🇪🇸', code:'ES',
+    tab_livella:'Nivel', tab_misure:'Medidas', tab_target:'Ángulo Objetivo',
+    waiting:'EN ESPERA', in_bolla:'A NIVEL', target_reached:'OBJETIVO ALCANZADO',
+    lr:'Izquierda / Derecha', fb:'Adelante / Atrás', plane2d:'Plano 2D',
+    stability:'Estabilidad burbuja',
+    calibrated:'✔ Calibrado', not_calibrated:'⚠ No calibrado',
+    recalibrate:'Recalibrar',
+    connect:'⬡ Conectar Sensor', disconnect:'Desconectar', reset:'↺ Reset',
+    save_label:'Guardar medida actual', measure_placeholder:'ej. Viga izq., Suelo baño…',
+    save_btn:'Guardar', export_btn:'⬇ Exportar CSV', clear_btn:'Borrar todo',
+    confirm_clear:'¿Borrar todas las medidas?',
+    target_title:'Definir ángulo objetivo', roll_target:'Roll objetivo', pitch_target:'Pitch objetivo',
+    presets:'Preajustes comunes', preset_flat:'Plano (0°)',
+    set_target:'Establecer Objetivo', reset_target:'Reset',
+    active_target:'Objetivo activo', no_target:'Sin objetivo',
+    cal_title:'Calibración inicial',
+    cal_sub:'Coloque el sensor sobre una <strong>superficie de referencia nivelada</strong>, luego presione <strong>Calibrar ahora</strong>.',
+    cal_warning:'⚠ Asegúrese de que el sensor esté realmente nivelado antes de presionar. Si se equivoca, siempre puede volver a calibrar pulsando <strong>"Recalibrar"</strong>.',
+    cal_illus:'Sensor horizontal', cal_later:'Después', cal_now:'✔ Calibrar ahora',
+    tut_title:'Bienvenido a Livella Pro', tut_sub:'Tres pasos para empezar',
+    tut1_title:'Encender el sensor', tut1_body:'Conecte el sensor a la corriente (USB o batería). El LED parpadea cuando está listo.', tut1_tip:'⏱ Espere 3–4 segundos tras encenderlo',
+    tut2_title:'Conectar el sensor', tut2_body:'Pulse el botón naranja y seleccione <strong style="color:var(--orange)">Livella Pro</strong> de la lista.', tut2_tip:'📱 iPhone: use Bluefy · Android: use Chrome',
+    tut3_title:'Calibrar y usar', tut3_body:'La primera vez se le pedirá calibrar sobre una superficie nivelada. Siempre puede repetirlo. En obra: <strong>TARA</strong> = cero temporal · <strong>↺ Reset</strong> = volver a calibración.', tut3_tip:'📳 El teléfono vibra cuando está A NIVEL',
+    tut_ok:'Entendido, empezar →', tut_skip:'No volver a mostrar',
+    toast_tara:'Cero establecido — pulse ↺ Reset para volver a calibración',
+    toast_reset:'Vuelta a la calibración inicial',
+    toast_cal_saved:'✔ Calibración guardada',
+    toast_connect_first:'Conecte el sensor antes de calibrar',
+    toast_no_measures:'No hay medidas para exportar',
+    ble_not_found:'Abra en Bluefy (iOS) o Chrome (Android).',
+    err_gatt:'Conexión GATT fallida: ', err_svc:'Servicio NUS no encontrado — ¿seleccionó "Livella Pro"? ', err_char:'Característica TX: ',
+    footer_txt:'Bluefy (iOS) · Chrome (Android) · 10Hz',
+  }
+};
+
+let lang = localStorage.getItem('livella_lang') || 'it';
+let T = LANGS[lang];
+
+function applyLang() {
+  T = LANGS[lang];
+  document.documentElement.lang = lang;
+  // testi statici
+  document.querySelectorAll('[data-i]').forEach(el => {
+    const k = el.dataset.i;
+    if (T[k] !== undefined) el.innerHTML = T[k];
+  });
+  // placeholder
+  document.querySelectorAll('[data-i-placeholder]').forEach(el => {
+    const k = el.dataset.iPlaceholder;
+    if (T[k]) el.placeholder = T[k];
+  });
+  // flag e codice
+  document.getElementById('langFlag').textContent = T.flag;
+  document.getElementById('langCode').textContent  = T.code;
+  // active class sul dropdown
+  document.querySelectorAll('.lang-opt').forEach(o => o.classList.toggle('active', o.dataset.lang === lang));
+  // badge calibrazione
+  updateCalBadge();
+  // banner
+  if (!device?.gatt?.connected) {
+    document.getElementById('banner').innerHTML = `○ · · ${T.waiting} · · ○`;
+  }
+  // misureList empty text
+  document.querySelector('.misure-list').style.setProperty('--empty-txt', `"${T.no_target}"`);
+}
+
+// Lingua dropdown
+document.getElementById('langBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  document.getElementById('langDropdown').classList.toggle('open');
+});
+document.querySelectorAll('.lang-opt').forEach(o => {
+  o.addEventListener('click', () => {
+    lang = o.dataset.lang;
+    localStorage.setItem('livella_lang', lang);
+    document.getElementById('langDropdown').classList.remove('open');
+    applyLang();
+  });
+});
+document.addEventListener('click', () => document.getElementById('langDropdown').classList.remove('open'));
+
+// ══════════════════════════════════════════════
+//  BLE + LOGICA PRINCIPALE
+// ══════════════════════════════════════════════
 const SVC = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const TX  = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
-
-let device, pOff = 0, rOff = 0, lp = 0, lr = 0;
 const THR = 0.4;
 
+let device, lp = 0, lr = 0, prevOk = false;
+let calP = parseFloat(localStorage.getItem('livella_calP') || '0');
+let calR = parseFloat(localStorage.getItem('livella_calR') || '0');
+let hasCal = !!localStorage.getItem('livella_calP');
+let taraP = 0, taraR = 0;
+let targetR = null, targetP = null;
+let timerStart = null, timerSec = 0;
+const TIMER_MAX = 10;
+let misure = JSON.parse(localStorage.getItem('livella_misure') || '[]');
+
+const totalOffP = () => calP + taraP;
+const totalOffR = () => calR + taraR;
+
 const $ = id => document.getElementById(id);
-const btnConn  = $('btnConn');
-const btnDisc  = $('btnDisc');
-const btnTara  = $('btnTara');
-const dot      = $('dot');
-const stxt     = $('stxt');
-const banner   = $('banner');
-const bubH     = $('bubH');
-const bubV     = $('bubV');
-const bub2d    = $('bub2d');
-const hRoll    = $('hRoll');
-const hPitch   = $('hPitch');
-const tubeH    = $('tubeH');
-const tubeV    = $('tubeV');
-const errBox   = $('err');
+const btnConn=$('btnConn'),btnDisc=$('btnDisc'),btnTara=$('btnTara'),btnResetTara=$('btnResetTara');
+const dot=$('dot'),stxt=$('stxt'),banner=$('banner'),flash=$('flash'),errBox=$('err');
+const bubH=$('bubH'),bubV=$('bubV'),bub2d=$('bub2d');
+const hRoll=$('hRoll'),hPitch=$('hPitch'),cellRoll=$('cellRoll'),cellPitch=$('cellPitch');
+const tubeH=$('tubeH'),tubeV=$('tubeV');
+const timerFill=$('timerFill'),timerVal=$('timerVal');
+const misNome=$('misNome'),curVal=$('curVal'),btnSave=$('btnSave'),misureList=$('misureList');
+const tRoll=$('tRoll'),tPitch=$('tPitch'),tsActive=$('tsActive'),tsDeltaR=$('tsDeltaR'),tsDeltaP=$('tsDeltaP');
 
-// Bluefy espone navigator.bluetooth con ritardo → check dopo load
-window.addEventListener('load', () => setTimeout(() => {
-  if (!navigator.bluetooth) {
-    setErr('Apri questa pagina dentro Bluefy (iOS) oppure Chrome (Android).');
-    btnConn.disabled = true;
-  }
-}, 600));
+// ── TUTORIAL ──
+const tutorial=$('tutorial'),btnTutOk=$('btnTutOk'),btnTutSkip=$('btnTutSkip'),btnHelp=$('btnHelp');
+function closeTut(){tutorial.style.display='none'}
+function openTut(){tutorial.style.display='flex'}
+if(!localStorage.getItem('livella_tut_done')) openTut(); else closeTut();
+btnTutOk.addEventListener('click',closeTut);
+btnTutSkip.addEventListener('click',()=>{localStorage.setItem('livella_tut_done','1');closeTut()});
+btnHelp.addEventListener('click',openTut);
+tutorial.addEventListener('click',e=>{if(e.target===tutorial)closeTut()});
 
-// ── CONNETTI ──────────────────────────────────────────────────────────────────
-btnConn.addEventListener('click', async () => {
-  if (!navigator.bluetooth) { setErr('Web Bluetooth non disponibile.'); return; }
-  setSt('scan'); setErr('');
-  try {
-    // acceptAllDevices necessario per Bluefy su iOS
-    device = await navigator.bluetooth.requestDevice({
-      acceptAllDevices: true,
-      optionalServices: [SVC]
-    });
+// ── TABS ──
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active'); $(t.dataset.page).classList.add('active');
+  });
+});
 
-    device.addEventListener('gattserverdisconnected', onDisc);
+// ── BLE ──
+window.addEventListener('load',()=>setTimeout(()=>{
+  if(!navigator.bluetooth){setErr(T.ble_not_found);btnConn.disabled=true;}
+},600));
+
+btnConn.addEventListener('click',async()=>{
+  if(!navigator.bluetooth){setErr(T.ble_not_found);return;}
+  setSt('scan');setErr('');
+  try{
+    device=await navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:[SVC]});
+    device.addEventListener('gattserverdisconnected',onDisc);
     setSt('conn');
-
-    // Pausa necessaria su Bluefy/iOS prima del connect GATT
     await delay(600);
-
     let server;
-    try { server = await device.gatt.connect(); }
-    catch(e) { throw new Error('Connessione GATT fallita: ' + e.message); }
-
+    try{server=await device.gatt.connect();}catch(e){throw new Error(T.err_gatt+e.message);}
     let svc;
-    try { svc = await server.getPrimaryService(SVC); }
-    catch(e) { throw new Error('Servizio NUS non trovato — hai selezionato "Livella Pro"? (' + e.message + ')'); }
-
+    try{svc=await server.getPrimaryService(SVC);}catch(e){throw new Error(T.err_svc+e.message);}
     let ch;
-    try {
-      ch = await svc.getCharacteristic(TX);
-      await ch.startNotifications();
-    } catch(e) { throw new Error('Caratteristica non disponibile: ' + e.message); }
-
-    ch.addEventListener('characteristicvaluechanged', onData);
-
+    try{ch=await svc.getCharacteristic(TX);await ch.startNotifications();}catch(e){throw new Error(T.err_char+e.message);}
+    ch.addEventListener('characteristicvaluechanged',onData);
     setSt('ok');
-    btnConn.style.display = 'none';
-    btnDisc.style.display = 'block';
-    btnTara.disabled = false;
-
-  } catch(e) {
-    if (e.name !== 'NotFoundError') setErr('⚠ ' + e.message);
+    btnConn.style.display='none';btnDisc.style.display='block';
+    btnTara.disabled=false;btnResetTara.disabled=false;btnSave.disabled=false;
+    checkFirstCal();
+  }catch(e){
+    if(e.name!=='NotFoundError')setErr('⚠ '+e.message);
     setSt('off');
   }
 });
+btnDisc.addEventListener('click',()=>{if(device?.gatt.connected)device.gatt.disconnect();});
+function onDisc(){setSt('off');btnConn.style.display='block';btnDisc.style.display='none';btnTara.disabled=true;btnResetTara.disabled=true;btnSave.disabled=true;taraP=0;taraR=0;reset();}
 
-// ── DISCONNETTI ───────────────────────────────────────────────────────────────
-btnDisc.addEventListener('click', () => { if (device?.gatt.connected) device.gatt.disconnect(); });
+// ── TARA ──
+btnTara.addEventListener('click',()=>{
+  taraP=lp-calP; taraR=lr-calR;
+  showToast(T.toast_tara);
+});
+btnResetTara.addEventListener('click',()=>{
+  taraP=0;taraR=0;
+  showToast(T.toast_reset);
+});
 
-function onDisc() {
-  setSt('off');
-  btnConn.style.display = 'block';
-  btnDisc.style.display = 'none';
-  btnTara.disabled = true;
-  reset();
+// ── CALIBRAZIONE ──
+$('btnCalOk').addEventListener('click',()=>{
+  calP=lp;calR=lr;taraP=0;taraR=0;
+  localStorage.setItem('livella_calP',calP);
+  localStorage.setItem('livella_calR',calR);
+  hasCal=true;
+  $('calModal').style.display='none';
+  updateCalBadge();
+  showToast(T.toast_cal_saved);
+});
+$('btnCalSkip').addEventListener('click',()=>{$('calModal').style.display='none';});
+$('btnOpenCal').addEventListener('click',()=>{
+  if(!device?.gatt.connected){showToast(T.toast_connect_first);return;}
+  $('calModal').style.display='flex';
+});
+function updateCalBadge(){
+  const b=$('calBadge');
+  if(hasCal){b.textContent=T.calibrated;b.style.color='var(--green)';b.style.borderColor='rgba(0,232,122,.3)';}
+  else{b.textContent=T.not_calibrated;b.style.color='#ffb700';b.style.borderColor='rgba(255,183,0,.3)';}
 }
+function checkFirstCal(){if(!hasCal)setTimeout(()=>{$('calModal').style.display='flex';},800);}
 
-// ── TARA ──────────────────────────────────────────────────────────────────────
-btnTara.addEventListener('click', () => { pOff = lp; rOff = lr; });
-
-// ── DATI BLE ──────────────────────────────────────────────────────────────────
-let buf = '';
-function onData(e) {
-  buf += new TextDecoder().decode(e.target.value);
-  const lines = buf.split('\n'); buf = lines.pop();
-  for (const l of lines) {
-    const p = l.trim().split(',');
-    if (p.length < 2) continue;
-    lp = parseFloat(p[0]); lr = parseFloat(p[1]);
-    const pitch = lp - pOff, roll = lr - rOff;
-    const ok = Math.abs(pitch) < THR && Math.abs(roll) < THR;
-    draw(pitch, roll, ok);
+// ── DATI BLE ──
+let buf='';
+function onData(e){
+  buf+=new TextDecoder().decode(e.target.value);
+  const lines=buf.split('\n');buf=lines.pop();
+  for(const l of lines){
+    const p=l.trim().split(',');if(p.length<2)continue;
+    lp=parseFloat(p[0]);lr=parseFloat(p[1]);
+    draw(lp-totalOffP(),lr-totalOffR());
   }
 }
 
-// ── DISEGNO ───────────────────────────────────────────────────────────────────
-function draw(pitch, roll, ok) {
-  hRoll.textContent  = roll.toFixed(1);
-  hPitch.textContent = pitch.toFixed(1);
-  hRoll.className    = 'v' + (ok ? ' ok' : Math.abs(roll)  > .5 ? ' warn' : '');
-  hPitch.className   = 'v' + (ok ? ' ok' : Math.abs(pitch) > .5 ? ' warn' : '');
+// ── DISEGNO ──
+function draw(pitch,roll){
+  const evalR=targetR!==null?roll-targetR:roll;
+  const evalP=targetP!==null?pitch-targetP:pitch;
+  const ok=Math.abs(evalR)<THR&&Math.abs(evalP)<THR;
 
-  const tw = tubeH.offsetWidth;
-  const rc = Math.max(-45, Math.min(45, roll));
-  bubH.style.left = ((tw/2) + (rc/45)*(tw*.42)) + 'px';
+  hRoll.textContent=(roll>=0?'+':'')+roll.toFixed(2);
+  hPitch.textContent=(pitch>=0?'+':'')+pitch.toFixed(2);
+  hRoll.className='v'+(ok?' ok':Math.abs(evalR)>.5?' warn':'');
+  hPitch.className='v'+(ok?' ok':Math.abs(evalP)>.5?' warn':'');
+  cellRoll.className='hcell'+(ok?' ok':Math.abs(evalR)>.5?' warn':'');
+  cellPitch.className='hcell'+(ok?' ok':Math.abs(evalP)>.5?' warn':'');
 
-  const th = tubeV.offsetHeight;
-  const pc = Math.max(-45, Math.min(45, pitch));
-  bubV.style.top = ((th/2) + (pc/45)*(th*.42)) + 'px';
+  const tw=tubeH.offsetWidth;
+  bubH.style.left=((tw/2)+(Math.max(-45,Math.min(45,evalR))/45)*(tw*.42))+'px';
+  bubH.classList.toggle('ok',ok);
+  const th=tubeV.offsetHeight;
+  bubV.style.top=((th/2)+(Math.max(-45,Math.min(45,evalP))/45)*(th*.42))+'px';
+  bubV.classList.toggle('ok',ok);
+  const r2=Math.min(46,Math.sqrt(evalR*evalR+evalP*evalP)/45*46);
+  const a=Math.atan2(evalP,evalR);
+  bub2d.style.left=(66+r2*Math.cos(a))+'px';
+  bub2d.style.top=(66+r2*Math.sin(a))+'px';
+  bub2d.classList.toggle('ok',ok);
 
-  const r = Math.min(46, Math.sqrt(roll*roll+pitch*pitch)/45*46);
-  const a = Math.atan2(pitch, roll);
-  bub2d.style.left = (65 + r*Math.cos(a)) + 'px';
-  bub2d.style.top  = (65 + r*Math.sin(a)) + 'px';
-  bub2d.classList.toggle('ok', ok);
+  if(ok){
+    const lbl=targetR!==null?T.target_reached:T.in_bolla;
+    banner.textContent='✔  '+lbl+'  ✔';banner.classList.add('ok');
+    if(!prevOk){flash.classList.remove('go');void flash.offsetWidth;flash.classList.add('go');if(navigator.vibrate)navigator.vibrate([60,30,60]);}
+  }else{
+    const rLbl=`R ${evalR>=0?'+':''}${evalR.toFixed(2)}°`;
+    const pLbl=`P ${evalP>=0?'+':''}${evalP.toFixed(2)}°`;
+    banner.textContent=`${rLbl}   ${pLbl}`;banner.classList.remove('ok');
+  }
+  prevOk=ok;
 
-  if (ok) {
-    banner.textContent = '✓  IN BOLLA  ✓';
-    banner.classList.add('ok');
-    if (navigator.vibrate) navigator.vibrate(40);
-  } else {
-    banner.textContent = `◦ R ${roll>=0?'+':''}${roll.toFixed(2)}°  P ${pitch>=0?'+':''}${pitch.toFixed(2)}° ◦`;
-    banner.classList.remove('ok');
+  // timer
+  const now=Date.now();
+  if(ok){if(!timerStart)timerStart=now;timerSec=(now-timerStart)/1000;}
+  else{timerStart=null;timerSec=0;}
+  const pct=Math.min(100,(timerSec/TIMER_MAX)*100);
+  timerFill.style.width=pct+'%';timerFill.classList.toggle('done',timerSec>=TIMER_MAX);
+  timerVal.textContent=timerSec.toFixed(1)+'s';
+  timerVal.className='timer-val'+(timerSec>=TIMER_MAX?' done':ok?' running':'');
+
+  curVal.textContent=`R${roll>=0?'+':''}${roll.toFixed(2)}° P${pitch>=0?'+':''}${pitch.toFixed(2)}°`;
+
+  if(targetR!==null){
+    tsDeltaR.textContent=(evalR>=0?'+':'')+evalR.toFixed(2)+'°';
+    tsDeltaP.textContent=(evalP>=0?'+':'')+evalP.toFixed(2)+'°';
+    tsDeltaR.className='ts-delta'+(Math.abs(evalR)<THR?' ok':Math.abs(evalR)<1?' near':'');
+    tsDeltaP.className='ts-delta'+(Math.abs(evalP)<THR?' ok':Math.abs(evalP)<1?' near':'');
   }
 }
 
-// ── STATUS ────────────────────────────────────────────────────────────────────
-function setSt(s) {
-  dot.className = '';
-  const m = { off:['OFFLINE',''], scan:['RICERCA...','blink'], conn:['CONNESSIONE','blink'], ok:['CONNESSO','on'] };
-  const [t,c] = m[s]||['--',''];
-  stxt.textContent = t;
-  if (c) dot.classList.add(c);
+// ── MISURE ──
+function renderMisure(){
+  misureList.innerHTML='';
+  if(!misure.length){
+    const empty=document.createElement('div');
+    empty.style.cssText='font-family:var(--hud);font-size:.75rem;color:var(--muted);text-align:center;padding-top:24px';
+    empty.textContent='—';misureList.appendChild(empty);return;
+  }
+  misure.forEach((m,i)=>{
+    const el=document.createElement('div');el.className='misura-item';
+    const t=new Date(m.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    el.innerHTML=`<span class="mi-name">${m.nome}</span><span class="mi-vals">${m.val}</span><span class="mi-time">${t}</span><button class="mi-del" data-i="${i}">✕</button>`;
+    misureList.appendChild(el);
+  });
+  misureList.querySelectorAll('.mi-del').forEach(b=>b.addEventListener('click',()=>{misure.splice(+b.dataset.i,1);saveMisure();renderMisure();}));
 }
+btnSave.addEventListener('click',()=>{
+  const nome=misNome.value.trim()||'Misura';
+  misure.unshift({nome,val:curVal.textContent,ts:Date.now()});
+  saveMisure();renderMisure();misNome.value='';
+});
+function saveMisure(){localStorage.setItem('livella_misure',JSON.stringify(misure));}
+$('btnExport').addEventListener('click',()=>{
+  if(!misure.length){showToast(T.toast_no_measures);return;}
+  let csv='Nome,Valore,Ora\n';
+  misure.forEach(m=>{const t=new Date(m.ts).toLocaleString();csv+=`"${m.nome}","${m.val}","${t}"\n`;});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='misure_livella_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+});
+$('btnClear').addEventListener('click',()=>{
+  if(!misure.length)return;
+  if(confirm(T.confirm_clear)){misure=[];saveMisure();renderMisure();}
+});
+renderMisure();
 
-function setErr(msg) {
-  errBox.textContent = msg;
-  errBox.style.display = msg ? 'block' : 'none';
+// ── TARGET ──
+document.querySelectorAll('.preset').forEach(p=>{
+  p.addEventListener('click',()=>{
+    document.querySelectorAll('.preset').forEach(x=>x.classList.remove('active'));
+    p.classList.add('active');tRoll.value=p.dataset.r;tPitch.value=p.dataset.p;
+  });
+});
+$('btnTargetSet').addEventListener('click',()=>{
+  const r=parseFloat(tRoll.value)||0,p=parseFloat(tPitch.value)||0;
+  targetR=r;targetP=p;
+  tsActive.textContent=`Roll ${r>=0?'+':''}${r.toFixed(2)}°  /  Pitch ${p>=0?'+':''}${p.toFixed(2)}°`;
+  tsDeltaR.textContent='--';tsDeltaP.textContent='--';
+});
+$('btnTargetClr').addEventListener('click',()=>{
+  targetR=null;targetP=null;
+  tsActive.innerHTML=T.no_target;
+  tsDeltaR.textContent='--';tsDeltaP.textContent='--';
+  tsDeltaR.className='ts-delta';tsDeltaP.className='ts-delta';
+  tRoll.value='';tPitch.value='';
+  document.querySelectorAll('.preset').forEach(x=>x.classList.remove('active'));
+});
+
+// ── UTILS ──
+function setSt(s){
+  dot.className='';
+  const m={off:['OFFLINE',''],scan:['···','blink'],conn:['···','blink'],ok:['OK','on']};
+  const[t,c]=m[s]||['--',''];stxt.textContent=t;if(c)dot.classList.add(c);
 }
-
-function reset() {
-  hRoll.textContent = '--.-'; hPitch.textContent = '--.-';
-  bubH.style.left = '50%'; bubV.style.top = '50%';
-  bub2d.style.left = '65px'; bub2d.style.top = '65px';
-  banner.textContent = '○ · · IN ATTESA · · ○';
-  banner.classList.remove('ok');
-  pOff = 0; rOff = 0;
+function setErr(msg){errBox.textContent=msg;errBox.style.display=msg?'block':'none';}
+function showToast(msg){
+  const t=$('toast');t.textContent=msg;t.className='toast show';
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2800);
 }
+function reset(){
+  hRoll.textContent='--.-';hPitch.textContent='--.-';
+  hRoll.className='v';hPitch.className='v';cellRoll.className='hcell';cellPitch.className='hcell';
+  bubH.style.left='50%';bubV.style.top='50%';bub2d.style.left='66px';bub2d.style.top='66px';
+  [bubH,bubV,bub2d].forEach(b=>b.classList.remove('ok'));
+  banner.innerHTML=`○ · · ${T.waiting} · · ○`;banner.classList.remove('ok');
+  timerFill.style.width='0%';timerVal.textContent='0.0s';timerVal.className='timer-val';
+  timerStart=null;timerSec=0;prevOk=false;curVal.textContent='--';
+}
+const delay=ms=>new Promise(r=>setTimeout(r,ms));
 
-const delay = ms => new Promise(r => setTimeout(r, ms));
+// ── INIT LINGUA ──
+applyLang();
 </script>
 </body>
 </html>
