@@ -529,12 +529,6 @@
 <!-- CONTENUTO PRINCIPALE -->
 <div id="mainContent">
 
-  <!-- BANNER PERMESSO iOS -->
-  <div id="iosPermBanner">
-    <span>iOS richiede permesso per il sensore di movimento</span>
-    <button id="btnIosPerm">Autorizza</button>
-  </div>
-
   <!-- BANNER IN BOLLA -->
   <div id="bollaBanner">○ · · IN ATTESA · · ○</div>
 
@@ -602,32 +596,18 @@
 
 </div>
 
-<footer>ESP32-C3 · MPU6050 · BLE (Bluefy su iOS, Chrome su Android) · 10Hz</footer>
+<footer>ESP32-C3 · MPU6050 · Bluefy (iOS) · Chrome (Android) · 10Hz</footer>
 
 <script>
-  // ─── BLE UUIDs ────────────────────────────────────────────────────────────
   const NUS_SERVICE = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
   const NUS_TX      = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
   const NUS_RX      = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
 
-  // ─── STATO ───────────────────────────────────────────────────────────────
-  let device = null, server = null;
+  let device = null;
   let pitchOffset = 0, rollOffset = 0;
   let lastPitch = 0, lastRoll = 0;
-  let bleActive = false;
-  let orientationHandler = null;
   const LEVEL_THRESHOLD = 0.4;
 
-  // Filtro media mobile per sensore telefono
-  const N = 8;
-  const pBuf = new Array(N).fill(0), rBuf = new Array(N).fill(0);
-  let fIdx = 0;
-  function smooth(p, r) {
-    pBuf[fIdx] = p; rBuf[fIdx] = r; fIdx = (fIdx + 1) % N;
-    return [pBuf.reduce((a,v)=>a+v,0)/N, rBuf.reduce((a,v)=>a+v,0)/N];
-  }
-
-  // ─── DOM ──────────────────────────────────────────────────────────────────
   const btnConnect    = document.getElementById('btnConnect');
   const btnDisconnect = document.getElementById('btnDisconnect');
   const btnTara       = document.getElementById('btnTara');
@@ -635,8 +615,6 @@
   const statusText    = document.getElementById('statusText');
   const errorBox      = document.getElementById('errorBox');
   const bollaBanner   = document.getElementById('bollaBanner');
-  const iosPermBanner = document.getElementById('iosPermBanner');
-  const btnIosPerm    = document.getElementById('btnIosPerm');
   const bubbleH       = document.getElementById('bubbleH');
   const bubbleV       = document.getElementById('bubbleV');
   const bubble2d      = document.getElementById('bubble2d');
@@ -645,148 +623,62 @@
   const tubeH         = document.getElementById('tubeH');
   const tubeV         = document.getElementById('tubeV');
 
-  // ─── INIT ─────────────────────────────────────────────────────────────────
-  // Aspetta che la pagina sia stabile prima di fare qualsiasi check
-  // (Bluefy a volte espone navigator.bluetooth con ritardo)
+  // Bluefy su iOS espone navigator.bluetooth con ritardo → aspettiamo load
   window.addEventListener('load', () => {
-    setTimeout(initApp, 300);
+    setTimeout(() => {
+      if (!navigator.bluetooth) {
+        showError('Web Bluetooth non trovato. Apri questa pagina dentro Bluefy (iOS) o Chrome (Android).');
+        btnConnect.disabled = true;
+      }
+    }, 500);
   });
 
-  function initApp() {
-    const hasBluetooth = !!navigator.bluetooth;
-
-    if (!hasBluetooth) {
-      // Nessun BLE (Safari puro, vecchi browser) → nascondi bottone connetti
-      btnConnect.style.display = 'none';
-      showError('BLE non disponibile: usa Bluefy su iOS o Chrome su Android. Sensore telefono attivo.');
-    }
-
-    // Avvia sempre il sensore del telefono come base
-    initPhoneSensor();
-  }
-
-  // ─── SENSORE TELEFONO ─────────────────────────────────────────────────────
-  function initPhoneSensor() {
-    if (typeof DeviceOrientationEvent === 'undefined') {
-      showError('Sensore di movimento non disponibile.');
-      return;
-    }
-
-    // iOS 13+ richiede permesso esplicito tramite gesto utente
-    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-      iosPermBanner.style.display = 'flex';
-
-      btnIosPerm.addEventListener('click', async () => {
-        try {
-          const res = await DeviceOrientationEvent.requestPermission();
-          if (res === 'granted') {
-            iosPermBanner.style.display = 'none';
-            attachOrientation();
-          } else {
-            showError('Permesso sensore negato. Ricarica la pagina per riprovare.');
-          }
-        } catch(e) {
-          showError('Errore permesso: ' + e.message);
-        }
-      }, { once: true });
-
-    } else {
-      // Android / desktop → nessun permesso necessario
-      attachOrientation();
-    }
-  }
-
-  function attachOrientation() {
-    orientationHandler = (e) => {
-      if (bleActive) return; // BLE ha priorità
-
-      // beta  = rotazione avanti/indietro (telefono verticale: ~90°)
-      // gamma = rotazione sinistra/destra
-      if (e.beta === null || e.gamma === null) return;
-
-      let rawPitch = e.beta - 90; // normalizza: 0 = piano orizzontale
-      let rawRoll  = e.gamma;
-
-      // Su iOS il segno di gamma può essere invertito in landscape
-      // Usiamo absolute=false quindi è relativo all'orientamento schermo
-      const [pitch, roll] = smooth(rawPitch, rawRoll);
-
-      lastPitch = pitch; lastRoll = roll;
-      const pAdj = pitch - pitchOffset;
-      const rAdj = roll  - rollOffset;
-      const inBolla = Math.abs(pAdj) < LEVEL_THRESHOLD && Math.abs(rAdj) < LEVEL_THRESHOLD;
-
-      updateUI(pAdj, rAdj, inBolla);
-    };
-
-    window.addEventListener('deviceorientation', orientationHandler, true);
-    setStatus('phone');
-    btnTara.disabled = false;
-  }
-
-  // ─── CONNESSIONE BLE ──────────────────────────────────────────────────────
+  // ─── CONNETTI ─────────────────────────────────────────────────────────────
   btnConnect.addEventListener('click', async () => {
-    if (!navigator.bluetooth) {
-      showError('Web Bluetooth non disponibile in questo browser.');
-      return;
-    }
     setStatus('scanning');
     showError('');
-
     try {
       device = await navigator.bluetooth.requestDevice({
         filters: [{ name: 'Livella Pro' }],
         optionalServices: [NUS_SERVICE]
       });
 
-      device.addEventListener('gattserverdisconnected', onBLEDisconnected);
-
+      device.addEventListener('gattserverdisconnected', onDisconnected);
       setStatus('connecting');
 
-      // Bluefy/iOS a volte ha bisogno di un piccolo ritardo prima del connect
-      await new Promise(r => setTimeout(r, 200));
-      server = await device.gatt.connect();
-
+      // Bluefy ha bisogno di un piccolo delay dopo il pairing prima del connect
+      await new Promise(r => setTimeout(r, 300));
+      const server  = await device.gatt.connect();
       const service = await server.getPrimaryService(NUS_SERVICE);
       const txChar  = await service.getCharacteristic(NUS_TX);
+
       await txChar.startNotifications();
       txChar.addEventListener('characteristicvaluechanged', onData);
 
-      try { await service.getCharacteristic(NUS_RX); } catch {}
-
-      bleActive = true;
       setStatus('connected');
       btnConnect.style.display    = 'none';
       btnDisconnect.style.display = 'block';
       btnTara.disabled = false;
 
     } catch (err) {
-      // NotFoundError = utente ha chiuso il popup senza scegliere → silenzioso
       if (err.name !== 'NotFoundError') {
-        showError('Errore BLE: ' + err.message);
+        showError('Errore: ' + err.message);
       }
-      setStatus(orientationHandler ? 'phone' : 'offline');
+      setStatus('offline');
     }
   });
 
+  // ─── DISCONNETTI ──────────────────────────────────────────────────────────
   btnDisconnect.addEventListener('click', () => {
     if (device && device.gatt.connected) device.gatt.disconnect();
   });
 
-  function onBLEDisconnected() {
-    bleActive = false;
+  function onDisconnected() {
+    setStatus('offline');
     btnConnect.style.display    = 'block';
     btnDisconnect.style.display = 'none';
-    pitchOffset = 0; rollOffset = 0;
-    // Ritorna automaticamente al sensore telefono se disponibile
-    if (orientationHandler) {
-      setStatus('phone');
-      bollaBanner.textContent = '○ · · SENSORE TELEFONO · · ○';
-      bollaBanner.classList.remove('active');
-    } else {
-      setStatus('offline');
-      resetUI();
-    }
+    btnTara.disabled = true;
+    resetUI();
   }
 
   // ─── TARA ─────────────────────────────────────────────────────────────────
@@ -796,6 +688,7 @@
   });
 
   // ─── DATI BLE ─────────────────────────────────────────────────────────────
+  // Formato: "pitch,roll,in_bolla\n"
   let bleBuffer = '';
   function onData(event) {
     bleBuffer += new TextDecoder().decode(event.target.value);
@@ -821,29 +714,23 @@
     hudRoll.textContent  = roll.toFixed(1);
     hudPitch.textContent = pitch.toFixed(1);
 
-    const wR = Math.abs(roll)  > 0.5;
-    const wP = Math.abs(pitch) > 0.5;
-    hudRoll.className  = 'hud-val' + (inBolla ? ' ok' : wR ? ' warn' : '');
-    hudPitch.className = 'hud-val' + (inBolla ? ' ok' : wP ? ' warn' : '');
+    hudRoll.className  = 'hud-val' + (inBolla ? ' ok' : Math.abs(roll)  > 0.5 ? ' warn' : '');
+    hudPitch.className = 'hud-val' + (inBolla ? ' ok' : Math.abs(pitch) > 0.5 ? ' warn' : '');
 
-    // Bolla orizzontale
     const tubeW = tubeH.offsetWidth;
     const rC = Math.max(-TUBE_H_MAX, Math.min(TUBE_H_MAX, roll));
     bubbleH.style.left = ((tubeW / 2) + (rC / TUBE_H_MAX) * (tubeW * 0.42)) + 'px';
 
-    // Bolla verticale
     const tubeHt = tubeV.offsetHeight;
     const pC = Math.max(-TUBE_V_MAX, Math.min(TUBE_V_MAX, pitch));
     bubbleV.style.top = ((tubeHt / 2) + (pC / TUBE_V_MAX) * (tubeHt * 0.42)) + 'px';
 
-    // Bolla 2D
     const r = Math.min(CIRCLE_MAX_R, Math.sqrt(roll*roll + pitch*pitch) / TUBE_H_MAX * CIRCLE_MAX_R);
     const a = Math.atan2(pitch, roll);
     bubble2d.style.left = (70 + r * Math.cos(a)) + 'px';
     bubble2d.style.top  = (70 + r * Math.sin(a)) + 'px';
     bubble2d.classList.toggle('in-bolla', inBolla);
 
-    // Banner + vibrazione
     if (inBolla) {
       bollaBanner.textContent = '✓  IN BOLLA  ✓';
       bollaBanner.classList.add('active');
@@ -854,15 +741,13 @@
     }
   }
 
-  // ─── STATUS ───────────────────────────────────────────────────────────────
   function setStatus(s) {
     statusDot.className = '';
     const map = {
       offline:    ['OFFLINE',     ''],
       scanning:   ['RICERCA...',  'scanning'],
       connecting: ['CONNESSIONE', 'scanning'],
-      connected:  ['BLE CONNESSO','connected'],
-      phone:      ['TELEFONO',    'connected'],
+      connected:  ['CONNESSO',    'connected'],
     };
     const [txt, cls] = map[s] || ['--', ''];
     statusText.textContent = txt;
@@ -875,12 +760,12 @@
   }
 
   function resetUI() {
-    hudRoll.textContent = '--.-';
+    hudRoll.textContent  = '--.-';
     hudPitch.textContent = '--.-';
-    bubbleH.style.left = '50%';
-    bubbleV.style.top  = '50%';
-    bubble2d.style.left = '70px';
-    bubble2d.style.top  = '70px';
+    bubbleH.style.left   = '50%';
+    bubbleV.style.top    = '50%';
+    bubble2d.style.left  = '70px';
+    bubble2d.style.top   = '70px';
     bollaBanner.textContent = '○ · · IN ATTESA · · ○';
     bollaBanner.classList.remove('active');
     pitchOffset = 0; rollOffset = 0;
